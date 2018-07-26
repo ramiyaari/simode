@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532007046237.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1073243342",
+    "id" : "1414371C",
+    "lastKnownWriteTime" : 1532362588,
+    "last_content_update" : 1532362588511,
+    "path" : "C:/Research/R Code/Direct Method/simode package/simode/R/simode_multi.R",
+    "project_path" : "R/simode_multi.R",
+    "properties" : {
+        "cursorPosition" : "165,49",
+        "scrollLine" : "158"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

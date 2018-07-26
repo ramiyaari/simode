@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1531906960490.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2196445315",
+    "id" : "D72E1DA0",
+    "lastKnownWriteTime" : 1531944872,
+    "last_content_update" : 1531944872,
+    "path" : "C:/Research/R Code/Direct Method/simode package/FN-example.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "191,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

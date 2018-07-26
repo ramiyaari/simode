@@ -1,0 +1,10 @@
+{
+    "dialog-state" : {
+        "caseSensitive" : false,
+        "filePatterns" : [
+        ],
+        "path" : "C:/Research/R Code/Direct Method/imode package",
+        "query" : "%in%",
+        "regex" : true
+    }
+}

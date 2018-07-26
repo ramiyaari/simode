@@ -1,0 +1,98 @@
+
+## generate LV example data -------------------------------------
+
+## generate equations -----------------------------------------------
+
+# X=Pred,Y=Prey
+
+pars <- c('alpha','beta','gamma','delta')
+vars <- c('X','Y')
+eq_X <- 'alpha*X-beta*X*Y'
+eq_Y <- 'delta*X*Y-gamma*Y'
+equations <- c(eq_X,eq_Y)
+names(equations) <- vars
+x0 <- c(0.9,0.9)
+names(x0) <- vars
+theta <- c(2/3,4/3,1,1)
+names(theta) <- pars
+
+## generate observations -----------------------------------------------
+
+library("simode")
+N <- 100
+time <- seq(0,25,length.out=N)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+
+set.seed(1000)
+# sigma_factor <- 0.2
+sigma <- 0.1
+obs <- list()
+for(i in 1:length(vars)) {
+  # sigma <- mean(x_det[,i])*sigma_factor
+  obs[[i]] <- pmax(0,x_det[,i] + rnorm(N,0,sigma))
+}
+names(obs) <- vars
+
+
+# calc_nll impl -------------------------------------------------------
+
+calc_nll <- function(pars, time, obs, model_out, sigma_factor) {
+  -sum(unlist(lapply(names(obs),function(var) {
+    stats::dnorm(obs[[var]],mean=model_out[,var],
+                 sd=sigma_factor*mean(model_out[,var]),log=T)
+  })))
+}
+
+# fit data  ----------------------------------------------------------
+
+simode_ctrl <- simode.control(trace=1)
+# simode_ctrl$save_to_log <- T
+simode_ctrl$save_im_trace <- T
+simode_ctrl$save_nls_trace <- T
+# simode_ctrl$im_smoothing <- 'kernel'
+# simode_ctrl$ode_control$method <- 'rk4'
+
+simode_fit <- simode(
+  equations=equations, pars=c(pars,vars), time=time, obs=obs,
+  simode_ctrl=simode_ctrl)
+
+plot(simode_fit, type='fit', show='both', pars_true=c(theta,x0), mfrow=c(2,1), legend=T)
+plot(simode_fit, type='est', show='both', pars_true=c(theta,x0), legend=T)
+
+plot_trace(simode_fit, which=pars, mfrow=c(3,2))
+
+profile1 <- profile(simode_fit,step_size=0.01,max_steps=50,trace=2,which='alpha',optim_type = 'both')
+plot(profile1) #,mfrow=c(2,3))
+ci1 <- confint(profile1)
+plot(ci1,pars_true=c(theta['alpha']),legend=T)
+
+################################################################
+
+mc_sets <- 5
+set.seed(1000)
+sigma <- 0.1
+mc_obs <- list()
+for(j in 1:mc_sets) {
+  obs <- list()
+  for(i in 1:length(vars)) {
+    obs[[i]] <- pmax(0, rnorm(N,x_det[,i],sigma))
+  }
+  names(obs) <- vars
+  mc_obs[[j]] <- obs
+}
+
+simode_ctrl <- simode.control()
+simode_ctrl$trace <- 3
+simode_ctrl$parallel <- T
+simode_ctrl$save_to_log <- T
+
+
+simode_fits1 <- simode(
+  equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
+  mc_sets=mc_sets, simode_ctrl=simode_ctrl)
+
+summary(simode_fits1,pars_true=c(theta[pars],x0))
+
+plot(simode_fits1, type='fit', pars_true=c(theta,x0), mfrow=c(2,1),legend=T)
+plot(simode_fits1, type='est', pars_true=c(theta,x0),legend=T)
