@@ -1,0 +1,1000 @@
+%\documentclass[article]{jss}
+\documentclass[12pt]{article}
+\bibliographystyle{vancouver}
+%library("tools")
+%texi2pdf("simode.tex")
+%% -- LaTeX packages and custom commands ---------------------------------------
+
+%% recommended packages
+\usepackage{thumbpdf,lmodern}
+
+\usepackage{Sweave}
+\SweaveOpts{echo=TRUE}
+%% another package (only for this demo article)
+%\usepackage{framed}
+
+%% new custom commands
+\newcommand{\class}[1]{`\code{#1}'}
+\newcommand{\fct}[1]{\code{#1()}}
+\newcommand{\rd}{{\rm d}}
+\newcommand{\rR}{\mathbb R}
+\newcommand{\code}[1]{\textbf{#1}}
+\newcommand{\pkg}[1]{\textbf{#1}}
+%% For Sweave-based articles about R packages:
+%% need no \usepackage{Sweave}
+%\SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
+<<preliminaries, echo=FALSE, results=hide>>=
+options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
+library("MASS")
+@
+
+
+%% -- Article metainformation (author, title, ...) -----------------------------
+
+%% - \author{} with primary affiliation
+%% - \Plainauthor{} without affiliations
+%% - Separate authors by \And or \AND (in \author) or by comma (in \Plainauthor).
+%% - \AND starts a new line, \And does not.
+%\author{Rami Yaari\\Department of Statistics\\ University of Haifa\\ Bio-statistical and Bio-mathematical Unit\\ The Gertner Institute for
+%Epidemiology and Health Policy Research
+%   \AND Itai Dattner\\Department of Statistics\\ University of Haifa}
+
+%% - \title{} in title case
+%% - \Plaintitle{} without LaTeX markup (if any)
+%% - \Shorttitle{} with LaTeX markup (if any), used as running title
+\title{\pkg{simode}: \proglang{R} Package for statistical inference of ordinary differential equations using separable integral-matching}
+%\Plaintitle{Separable Integral matching ODEs}
+%\Shorttitle{Separable Integral matching ODEs in \proglang{R}}
+
+\usepackage{authblk}
+
+\author[1,2]{Rami Yaari \thanks{ramiyaari@gmail.com}}
+\author[1]{Itai Dattner\thanks{idattner@stat.haifa.ac.il}}
+
+\affil[1]{Department of Statistics, University of Haifa, Haifa, Israel}
+\affil[2]{Bio-statistical and Bio-mathematical Unit, The Gertner Institute for Epidemiology and Health Policy Research, Chaim Sheba Medical Center, Tel Hashomer, Israel}
+
+\renewcommand\Authands{ and }
+
+\begin{document}
+
+\maketitle
+%% - \Abstract{} almost as usual
+\Abstract{
+In this paper we describe \textbf{simode}: Separable Integral Matching for Ordinary Differential Equations. The statistical methodologies applied in the package focus on several minimization procedures of an integral-matching criterion function, taking advantage of the mathematical structure of the differential equations like separability of parameters from equations. Application of integral based methods to parameter estimation of ordinary differential equations was shown to yield more accurate and stable results comparing to derivative based ones. Linear features such as separability were shown to ease optimization and inference. We demonstrate the functionalities of the package using various systems of ordinary differential equations.
+}
+
+%% - \Keywords{} with LaTeX markup, at least one required
+%% - \Plainkeywords{} without LaTeX markup (if necessary)
+%% - Should be comma-separated and in sentence case.
+%\Keywords{integral matching, otka volterra, ordinary differential equations,\proglang{R}, separable least squares, \pkg{simode}, sir, s-system}
+%\Plainkeywords{integral matching, otka volterra, ordinary differential equations, R, separable least squares, simode, sir, s-system}
+\smallskip
+\noindent \textbf{Keywords.}
+integral-matching, lotka volterra, ordinary differential equations, \proglang{R} package, separable least squares, \pkg{simode}, sir, s-system.
+%% - \Address{} of at least one author
+%% - May contain multiple affiliations for each author
+%%   (in extra lines, separated by \emph{and}\\).
+%% - May contain multiple authors for the same affiliation
+%%   (in the same first line, separated by comma).
+% \Address{
+%   Achim Zeileis\\
+%   Journal of Statistical Software\\
+%   \emph{and}\\
+%   Department of Statistics\\
+%   Faculty of Economics and Statistics\\
+%   Universit\"at Innsbruck\\
+%   Universit\"atsstr.~15\\
+%   6020 Innsbruck, Austria\\
+%   E-mail: \email{Achim.Zeileis@R-project.org}\\
+%   URL: \url{https://eeecon.uibk.ac.at/~zeileis/}
+% }
+
+\begin{document}
+\SweaveOpts{concordance=FALSE}
+
+
+
+
+
+
+
+%% -- Introduction -------------------------------------------------------------
+
+%% - In principle "as usual".
+%% - But should typically have some discussion of both _software_ and _methods_.
+%% - Use \proglang{}, \pkg{}, and \code{} markup throughout the manuscript.
+%% - If such markup is in (sub)section titles, a plain text version has to be
+%%   added as well.
+%% - All software mentioned should be properly \cite-d.
+%% - All abbreviations should be introduced.
+%% - Unless the expansions of abbreviations are proper names (like "Journal
+%%   of Statistical Software" above) they should be in sentence case (like
+%%   "generalized linear models" below).
+
+
+\section{Introduction}\label{sec:intro}
+\subsection{Background}
+This paper presents the \pkg{simode} \proglang{R} package \cite{R} aimed for conducting statistical inference on systems of ordinary differential equations (ODEs). Systems of ODEs are commonly used for the mathematical modeling of the rate of change of dynamic processes such as in mathematical biology \cite{edelstein2005mathematical}, biochemistry \cite{voit2000computational} and compartmental models in epidemiology \cite{anderson1992infectious}, to mention a few areas. Inference of ODEs involves the 'standard' statistical problems such as studying the identifiability of a model, estimating model parameters, predicting future states of the system, testing hypotheses, and choosing the 'best' model. However, dynamic systems are typically very complex: nonlinear, high dimensional and only partly measured. Moreover, data may be sparse and noisy. Thus, statistical learning (inference, prediction) of dynamical systems is not a trivial task in practice. In particular, numerical application of standard estimators, like the maximum likelihood or the least squares, may be difficult or computationally costly. Therefore, special computational platforms that allow for performing statistical inference for ODEs were recently developed. We first briefly mention some relevant packages we are aware of and then point out the main focus of \pkg{simode}.
+
+Existing software implementations that are most relevant to this work are the following. \pkg{CollocInfer} \proglang{R} package of \cite{hooker2015collocinfer} implements the profiling methodology of \cite{ramsay2007parameter} and some extensions (there exist also a \proglang{Matlab} version). In the area of systems biology, \cite{raue2015data2dynamics} present \pkg{Data2Dynamics}, a modeling environment for \proglang{Matlab} that can be used for constructing dynamical models of biochemical reaction networks for large datasets and complex experimental conditions, and to perform efficient and reliable parameter estimation for model fitting. \cite{mikkelsen2017learning} developed the \pkg{episode} \proglang{R} package that implements adaptive integral-matching (AIM) algorithm for learning polynomial or rational ODEs with a sparse network structure. Other software libraries not directly related to our methodological framework are described or used in \cite{wood2010statistical}, \cite{wilkinson2011package}, \cite{JSSv069i12}, and \cite{wu2008dediscover} which focus on stochastic modeling or on more specific domains. \cite{voit2000computational} uses \proglang{PLAS} (Power Law Analysis and Simulation; Copyright 1996--2012 by Ant\'{o}nio Ferreira) a software suitable to analyze power-law differential equations. Also developed by Ant\'{o}nio Ferreira is \pkg{S-timator}, a \proglang{Python} library dedicated for analyzing ODE-based models.
+
+The \proglang{R} package \pkg{simode} is substantially different from all the above tools in a sense that will be now explained and made clear.
+%
+%
+\subsection[The focus of simode]{The focus of \pkg{simode}}
+The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations (\cite{dattner2015}, \cite{dattner2015model}, \cite{dattner2017modelling}, \cite{yaarietal18}, \cite{dattnergugushvili18}). In that sense \pkg{simode} is closer in spirit to \pkg{CollocInfer} R package of \cite{hooker2015collocinfer}, and \pkg{episode} R package of \cite{mikkelsen2017learning}. Unlike \pkg{CollocInfer} we do not consider penalized estimation which balances between data and model. Further, we focus on integral-matching criterion functions which were shown to be more robust than gradient based ones \cite{dattner2015}. Using integral-matching criteria takes us closer in spirit to the \pkg{episode} R package of \cite{mikkelsen2017learning}. However, we focus on several minimization procedures of an integral-matching criterion function, taking advantage of the mathematical structure of the ODEs like separability of parameters from equations. Linear features such as separability were shown to ease optimization and inference (\cite{dattner2015}, \cite{dattner2015model}, \cite{vujavcic2015time}, \cite{dattner2017modelling}, \cite{yaarietal18}, \cite{vujavcic2018consistency}).
+
+We demonstrate various functionalities of the package using different systems of ODEs. To be more specific, we demonstrate the ability of the package to implement a full estimation pipeline from point estimates to generating confidence intervals (using an example of S-system); deal with partially observed systems (using SIR example); user defined likelihood functions (using FitzHugh-Nagumo model); and the use of any function of 't' introduced into the ODE model. In addition, the package can implement Monte Carlo experiments sequentially or in parallel (demonstrated using the Lotka Volterra model).
+
+The idea of separability of parameters and equations is now explained. Consider the following simple biochemical system taken from Chapter 2, Page 54 of \cite{voit2000computational},
+
+\begin{equation}\label{eq:biosimple}
+\begin{array}{l}
+x_1^{\prime}(t)=2x_2(t)-1.2x_1(t)^{0.5}x_3(t)^{-1},
+\\
+x_2^{\prime}(t)=2x_1(t)^{0.1}x_3(t)^{-1}x_4(t)^{0.5}-2x_2(t),
+\\
+x_3=0.5,
+\\
+x_4=1.
+\end{array}
+\end{equation}
+
+In this system the production of $x_2$ depends on $x_1,x_3$, and $x_4$ which enter with different kinetic orders (power). Specifically, $x_3$ has a negative power which indicates an inhibiting effect since an increase in $x_3$ leads to reduced production of $x_2$. The dynamics of the system for $x_1(0)=2$ and $x_2(0)=0.1$ is shown in Figure \ref{fig:simplebio}.
+
+\begin{figure}[t!]
+\centering
+<<figure1, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
+pars <- c('alpha1','g12','beta1','h11', 'alpha2','g21','beta2','h22')
+vars <- paste0('x', 1:2)
+eq1 <- 'alpha1*(x2^g12)-beta1*(x1^h11)'
+eq2 <- 'alpha2*(x1^g21)-beta2*(x2^h22)'
+equations <- c(eq1,eq2)
+names(equations) <- vars
+
+x0 <- c(2,0.1)
+names(x0) <- vars
+
+theta <- c(2,1,2.4,0.5,4,0.1,2,1)
+names(theta) <- pars
+library("simode")
+#library(ggplot2)
+n <- 200
+time <- seq(0,10,length.out=n)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+par(mfrow=c(1,2))
+plot(time, x_det[,1], type='l', ylab=vars[1])
+plot(time, x_det[,2], type='l', ylab=vars[2])
+@
+\caption{\label{fig:simplebio} Solutions $x_1$ and $x_2$ of the biochemical system of equation (\ref{eq:biosimple}).}
+\end{figure}
+
+
+This system is a special case of an S-system (\cite{voit2000computational}) defined as
+\begin{equation}\label{eq:s-system}
+x^\prime_j(t)=\alpha_j\Pi_{k=1}^dx_k^{g_{jk}}(t)-\beta_j\Pi_{k=1}^dx_k^{h_{jk}}(t), \quad j=1\dots,d.
+\end{equation}
+Here, $\alpha_j,\beta_j$ are rate constants; $g_{jk},h_{jk}$ are kinetic orders that reflect the strength and directionality of the effect a variable has on a given influx or efflux. The above system is linear in  $\alpha_j,\beta_j$ but nonlinear in $g_{jk},h_{jk}$. In fact, one can view this system as a regression where the 'covariates' variables are $x_j(t)$, the solutions of the ODEs on the right hand side of the equations, while the 'response' variables are the derivatives $x_j^{\prime}(t)$ on the left hand side. Further, we can say that the system is linear in its rate constants but nonlinear in the kinetic orders (the powers).
+
+More generally, consider a system of ordinary differential equations given by
+\begin{equation}\label{eq:ode_model}
+\bigg\{
+\begin{array}{l}
+ x^{\prime}(t)= F( x(t);\theta),\ t\in[0,T],
+\\
+ x(0)=\xi,
+\end{array}
+\end{equation}
+where $ x(t)$ takes values in $\rR^d,\, \xi$ in $\Xi\subset \rR^d,$
+and $\theta$ in $\Theta\subset\rR^p.$ The \pkg{simode} \proglang{R} package is especially useful for handling ODE systems for which
+\begin{equation}\label{eq:sep_ode}
+ F( x(t);\theta)= g(x(t);\theta_{NL})\theta_L,
+\end{equation}
+where $\theta=(\theta_{NL}^\top,\theta_{L}^\top)^\top$, $\top$ stands for the matrix transpose. Here $\theta_{NL}$, a vector of size $p_{NL}$, stands for the 'nonlinear' parameters that can not be separated from the state variables $x$, while $\theta_{L}$, a vector of size $p_L$, are the 'linear' parameters; note that $p=p_L+p_{NL}$. Setting \[\theta_{NL}=(g_{11},\dots,g_{1d},\dots,g_{d1},\dots,g_{dd},h_{11},\dots,h_{1d},\dots,h_{d1},\dots,h_{dd})^\top,\]
+and $\theta_L=(\alpha_1,\beta_1,\dots,\alpha_d,\beta_d)^\top,$ one can easily see that (\ref{eq:s-system}) is a special case of (\ref{eq:ode_model}) with a vector field $F$ as given in (\ref{eq:sep_ode}). In the special case of the biochemical example (\ref{eq:biosimple}), fixing $x_3, x_4$, we have $d=2$, so that the matrix $g(x(t);\theta_{NL})$ is given by
+\begin{eqnarray*}
+\left(
+\begin{array}{cccc}
+x_1^{g_{11}}(t)x_2^{g_{12}}(t),-x_1^{h_{11}}(t)x_2^{h_{12}}(t),0,0
+\\
+0,0,x_1^{g_{21}}(t)x_2^{g_{22}}(t),-x_1^{h_{21}}(t)x_2^{h_{22}}(t)
+\end{array}
+\right).
+\end{eqnarray*}
+Thus, the system can be written in the form
+\begin{eqnarray}\label{eq:biosimple_g}
+\left(
+\begin{array}{c}
+x^\prime_1(t)
+\\
+x^\prime_2(t)
+\end{array}
+\right)
+&=&
+\left(
+\begin{array}{cccc}
+x_1^{g_{11}}(t)x_2^{g_{12}}(t),-x_1^{h_{11}}(t)x_2^{h_{12}}(t),0,0
+\\
+0,0,x_1^{g_{21}}(t)x_2^{g_{22}}(t),-x_1^{h_{21}}(t)x_2^{h_{22}}(t)
+\end{array}
+\right)\theta_L,
+\end{eqnarray}
+where $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top=(2,2.4,4,2)^\top$, \newline and $\theta_{NL}=(g_{11},g_{12},h_{11},h_{12},g_{21},g_{22},h_{21},h_{22})^\top=(0,1,0.5,0,0.1,0,0,1)^\top$. The vector field in the formulation above is separable in the linear parameter vector $\theta_L$, and therefore we refer to such systems as ODEs {\it linear in the parameter}  $\theta_L$ (as in a linear regression model). This linear property of the system turns out to be very useful for data fitting purposes where parameter estimation is required.
+
+
+We emphasize that in our view \pkg{simode} should NOT be considered as a competitor for the other tools and packages mentioned above but instead, a complementary tool. Indeed, real problems arising in the area of dynamic systems are complex and typically there is no one method that can handle all type of problems uniformly better than other methods. For instance, one may consider generating initial parameter estimates using \pkg{simode} and then derive final estimates using generalized profiling implemented in \pkg{CollocInfer} that enables additional flexibility in assuming that the ODEs description of the dynamics are only approximately correct.
+
+The paper is organized as follows. In the next section we briefly present the statistical methodology implemented in \pkg{simode}. In Section~\ref{sec:application} we describe in detail the use of \pkg{simode} for parameter estimation of ODEs. Section \ref{sec:part} deals with partial observed systems, while additional functionalities are demonstrated in Section \ref{sec:add}. The last section includes a summary and some future directions.
+
+
+%
+%
+\section{Statistical methodology}\label{sec:stat_method}
+Let $x(t; \theta,\xi), t \in [0, T ]$ be the solution of the initial value problem (\ref{eq:ode_model}) given values of $\xi$ and $\theta$. We assume measurements of $x$ are collected at discrete time points
+\begin{equation}
+\label{eq:obs}
+Y_{j}(t_i)=x_j(t_i; \theta,\xi)+\epsilon_{ij}, \quad i=1,\ldots,n,j=1,\ldots,d,
+\end{equation}
+where the random variables $\epsilon_{ij}$ are independent
+measurement errors (not necessarily Gaussian) with zero mean and finite variance. Consider the nonlinear least squares estimator of $\theta$ and $\xi$ defined as a minimiser with respect to $\eta$ and $\zeta$ of the least squares criterion function
+\begin{eqnarray}\label{eq:nls}
+\sum_{j=1}^d\sum_{i=1}^n (Y_{j}(t_i)-x_j(t_i; \eta,\zeta))^2.
+\end{eqnarray}
+Typically, the ODEs (\ref{eq:ode_model}) are nonlinear in $x$, and no analytic solution of the system exists, therefore numerical integration techniques are required in the estimation process. In fact, in the least squares criterion above the exact solution $x$ will be approximated by $\tilde{x}$, a numerical solution (e.g., using Runge-Kutta) of the ODEs equation (\ref{eq:ode_model}) for a given parameter and initial conditions. Thus, estimation methods such as nonlinear least squares or maximum likelihood require solving the system numerically for large set of potential parameters values, and then choosing an optimal parameter using some nonlinear optimisation technique. However, the combination of sparse and noisy data, nonlinear optimisation, and the need for numerical integration makes the parameter estimation a complex task (even for systems of low dimensions, e.g., \cite{voit2004decoupling}), and in many instances requires heavy computation. Therefore we adopt a 'smooth and match' approach for parameter estimation which includes two steps ({\it i}):  bypassing numerical integration by using nonparametric smoothing of the data, and ({\it ii}): estimating the parameters by fitting the ODEs model to the estimated functions (\cite{Bellman197126}, \cite{varah1982spline}, \cite{brunel2008parameter}, \cite{liang2008parameter}, \cite{fang2011two}, \cite{gugushvili2012sqrt}, \cite{dattner2015}, \cite{dattner2015model}, \cite{vujavcic2015time}, \cite{dattner2017modelling}, \cite{dattnergugushvili18}; see also Chapter 8 of \cite{ramsay2017dynamic}). Then the resulting estimates are used as initial guess for optimization of the nonlinear least squares criterion function (\ref{eq:nls}). In particular, in the first estimation stage which includes the two steps mentioned above, we consider integral-matching which is now described.
+%
+%
+\subsection{Integral matching}
+By integration, equation (\ref{eq:ode_model}) yields the system of integral equations
+\begin{equation}\nonumber
+x(t)=\xi + \int_0^t F( x(s);\theta)\, \rd s\,\ t\in[0,T].
+\end{equation}
+Here $x(t)=x(t;\theta,\xi)$ is the true solution of the ODE. Let $\hat{x}(t)$  stand for a nonparametric estimator (e.g., smoothing the data using splines or local polynomials) of the solution $x$ of the ODEs equation (\ref{eq:ode_model}) given observations (\ref{eq:obs}). The criterion function of an integral-matching approach for a fully observed systems of ODEs takes the form
+\begin{equation}\label{eq:im}
+\int_0^T\parallel\hat{x}(t)-\zeta - \int_0^t F( \hat x(s);\eta)\, \rd s\parallel^2 \rd t,
+\end{equation}
+where $\parallel \cdot \parallel$ denotes the standard Euclidean norm. The estimator of the parameter will be the minimiser of the criterion function (\ref{eq:im}), with respect to $\zeta$ and $\eta$. As its name suggests, integral-matching avoids the estimation of derivatives of the solution $x$ as done in other smooth and match applications and hence is more stable (\cite{dattner2015}). While applying integral-matching leads to stable estimators, minimizing the criterion (\ref{eq:im}) is a complicated task in practice and good initial guess of parameter values is required for optimization. Therefore, the \proglang{R} package \pkg{simode} is designed to take advantage of separability of the ODE system, as demonstrated above in equation (\ref{eq:biosimple_g}). This separability issue is now further explained.
+%
+%
+\subsection{Exploiting linear features of the ODEs}
+The \pkg{simode} package implements three separability scenarios corresponding to the following cases of equation (\ref{eq:ode_model}):
+\begin{enumerate}
+\item[(a)] ODEs linear in the parameters where $F( x(t);\theta)= g(x(t))\theta$;
+\item[(b)] ODEs semi-linear in the parameters where $F( x(t);\theta)= g(x(t);\theta_{NL})\theta_L$;
+\item[(c)] ODEs nonlinear in the parameters where $F( x(t);\theta)$ has no separable form that can be exploited.
+\end{enumerate}
+
+On top of the estimation stability the integral-matching criteria ensures, cases (a)-(b) above enable better optimization. Indeed, the above cases describe mathematical characteristics (separability) of the ODEs, and in what follows we use a smoothed version of separable nonlinear least squares (\cite{golub2003separable}) as well as 'classical' nonlinear least squares. These two optimization methods can be applied in both cases (a) and (b). However, case (c) characterizes a model for which the only optimization method applicable is a nonlinear one since there is no separability of parameters.
+
+Consider case (a) of ODEs linear in the parameters where $F( x(t);\theta)= g(x(t))\theta$. Denote
+\begin{eqnarray*}\label{eq:Ghat}
+\hat{G}(t) &=& \int_0^t g(\hat{x}(s))\,\rd s\,,\quad t \in
+[0,T],\nonumber \\
+\hat{A} &=& \int_0^T \hat{G}(t)\,\rd t, \\
+\hat{B} &=& \int_0^T \hat{G}^\top(t) \hat{G}(t)\,\rd t. \nonumber
+\end{eqnarray*}
+
+Minimizing the integral criterion function (\ref{eq:im}) with respect
+to $\zeta$ and $\eta$ results in the direct estimators
+\begin{eqnarray}
+\hat{\xi} &=& \left(TI_d - \hat{A} \hat{B}^{-1}
+\hat{A}^\top\right)^{-1} \int_0^T \left(I_d - \hat{A}
+\hat{B}^{-1}
+\hat{G}^\top(t)\right) \hat{x}(t)\,\rd t, \label{eq:xihat} \\
+\hat{\theta}&=& \hat{B}^{-1} \int_0^T \hat{G}^\top(t) \left(
+\hat{x}(t) -\hat{\xi} \right) \rd t, \label{eq:thetahat}
+\end{eqnarray}
+where $I_d$ denotes the $d \times d$ identity matrix. Note that
+these estimators are well defined only if the inverse matrices in
+(\ref{eq:xihat}) and (\ref{eq:thetahat}) exist. Necessary and sufficient conditions for $\sqrt{n}$-consistency of the 'direct integral estimators' (\ref{eq:xihat}) and (\ref{eq:thetahat}) are provided in \cite{dattner2015}. Furthermore, the extensive simulation study in the aforementioned paper has demonstrated that using integrals as above instead of derivatives yields more accurate estimates. Indeed, it is well known (see e.g.,  \cite{voit2000computational} and \cite{chou2009recent}) that estimating derivatives from noisy and sparse data may be rather inaccurate. Additional  application of the direct integral method to a variety of synthetic and real data was shown to yield accurate and stable results in \cite{vujavcic2015time} and \cite{dattnergugushvili18}. Clearly, in this special case of ODEs linear in the parameter $\theta$ the complex task of nonlinear optimization reduces to the least squares solutions (\ref{eq:xihat}) and (\ref{eq:thetahat}) which are easy to obtain and therefore a substantial computational improvement in optimization performance is achieved.
+
+Now consider case (b) above of ODEs semi-linear in the parameters for which in equation (\ref{eq:ode_model}) the model can be written in the form $F( x(t);\theta)= g(x(t);\theta_{NL})\theta_L$. Then, for a given $\theta_{NL}$, minimizing the integral criterion function (\ref{eq:im}) yields least squares solutions similar to (\ref{eq:xihat})-(\ref{eq:thetahat}) which we denote by $\hat{\xi}(\theta_{NL})$ and $\hat{\theta}_L(\theta_{NL})$ with the notation emphasizing the dependence of the linear solutions on the nonlinear parameters. Plugging back $\hat{\xi}(\theta_{NL})$ and $\hat{\theta}_L(\theta_{NL})$ into the integral criterion function (\ref{eq:im}) results with
+\begin{equation}\label{eq:sepnls}
+M(\theta_{NL}):=\int_0^T\left|\left|
+\hat{x}(t)-\hat{\xi}(\theta_{NL})-\hat{G}(t;\theta_{NL})\hat{\theta}_L(\theta_{NL})
+\right|\right|^2\rd t,
+\end{equation}
+where we have defined $\hat{G}(t;\theta_{NL})= \int_0^t g(\hat{x}(s);\theta_{NL})\,\rd s\,,\quad t \in
+[0,T]\nonumber$. Once $M(\theta_{NL})$ is minimized and a solution $\hat\theta_{NL}$ is obtained, estimators for $\xi$ and $\theta$ follow immediately and are given by $\hat{\xi}(\hat\theta_{NL})$ and ${\hat\theta}_L(\hat\theta_{NL})$, respectively. This optimization procedure was considered in \cite{dattner2017modelling} and is a form of separable nonlinear least squares (\cite{golub2003separable}). Note that the we apply nonlinear optimization only for estimating the nonlinear parameters $\theta_{NL}$, and hence the dimension of the optimization problem has been substantially reduced.
+
+Finally, case (c) above requires nonlinear optimization for estimating $\xi$ and $\theta$ and the dimension of the optimization problem can not be reduced.
+%
+%
+\section[Parameter estimation of ODEs using simode]{Parameter estimation of ODEs using \pkg{simode}}\label{sec:application}
+In this section we demonstrate the main functionality of \pkg{simode} package (version 1.0.0), for parameter estimation of ODEs, via exploring the cases
+\begin{enumerate}
+\item[(a)] ODEs linear in the parameters where $F( x(t);\theta)= g(x(t))\theta$;
+\item[(b)] ODEs semi-linear in the parameters where $F( x(t);\theta)= g(x(t);\theta_{NL})\theta_L$;
+\item[(c)] ODEs nonlinear in the parameters where $F( x(t);\theta)$ has no separable form that can be exploited.
+\end{enumerate}
+We continue with the biochemical example described in equation (\ref{eq:biosimple}). Consider equation (\ref{eq:biosimple_g}) where we fix $x_3=0.5, x_4=1$. Further, assume that the zero kinetic parameters are known , so that the system is given by
+
+
+\begin{equation}\label{eq:biosimple2}
+\begin{array}{l}
+x_1^{\prime}(t)=2x_2(t)-2.4x_1(t)^{0.5},
+\\
+x_2^{\prime}(t)=4x_1(t)^{0.1}-2x_2(t).
+\end{array}
+\end{equation}
+
+
+Thus, the linear parameters of the system are $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top=(2,2.4,4,2)^\top$, and the nonlinear parameters are $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})^\top=(1,0.5,0.1,1)^\top$. Here is the system given in equation (\ref{eq:biosimple2}) as it should be written to be used later by the package:
+
+<<Ssys_example$equations>>=
+pars <- c('alpha1','g12','beta1','h11', 'alpha2','g21','beta2','h22')
+vars <- paste0('x', 1:2)
+eq1 <- 'alpha1*(x2^g12)-beta1*(x1^h11)'
+eq2 <- 'alpha2*(x1^g21)-beta2*(x2^h22)'
+equations <- c(eq1,eq2)
+names(equations) <- vars
+theta <- c(2,1,2.4,0.5,4,0.1,2,1)
+names(theta) <- pars
+x0 <- c(2,0.1)
+names(x0) <- vars
+@
+%
+The code above is the symbolic setup of the ODE system. The resulting objects of variables, parameters and initial conditions are
+<<Ssys_example$equations>>=
+equations
+theta
+x0
+@
+%
+Since we are working with symbolic objects we have created a function \code{solve\_ode} that uses the \code{ode} function of \pkg{deSolve} package (\cite{deSolve}). The following code generates observations according to the statistical model defined in equation (\ref{eq:obs}) where the distribution of the measurement error is Gaussian with standard deviation of $0.05$. The resulting 'true' ODE solutions and the stochastic observations are presented in Figure (\ref{fig:simplebio2}).
+
+
+<<Ssys_example$obs>>=
+library("simode")
+set.seed(1000)
+n <- 50
+time <- seq(0,10,length.out=n)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+sigma <- 0.05
+obs <- list()
+for(i in 1:length(vars)) {
+  obs[[i]] <- x_det[,i] + rnorm(n,0,sigma)
+}
+names(obs) <- vars
+@
+%
+
+\begin{figure}[t!]
+\centering
+<<figure2, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold, eval=TRUE>>=
+par(mfrow=c(1,2))
+plot(time, x_det[,1], type='l', ylab=vars[1])
+points(time, obs[[1]], ylab=vars[1])
+plot(time, x_det[,2], type='l', ylab=vars[2])
+points(time, obs[[2]], ylab=vars[2])
+@
+\caption{\label{fig:simplebio2} Solutions $x_1$ and $x_2$ of the biochemical system of equation (\ref{eq:biosimple}) in solid lines. Stochastic observations generated from the statistical model (\ref{eq:obs}) in circles.}
+\end{figure}
+
+Now that we have setup the system of ODEs in a symbolic form and generated observations from the statistical model we can explore cases (a)-(b)-(c) described above: we estimate model parameters, plot model fits, and provide profile-likelihood confidence intervals.
+
+The package uses integral-matching as a first stage and then (by default) executes nonlinear least squares  optimization, namely minimizing equation (\ref{eq:nls}), starting from the integral-matching estimates. The first estimation stage, i.e., the integral-matching, is based on smoothing the observations. We use by default the \code{smooth.spline} method of the \pkg{stats} package, with generalized cross validation (we also support performing integral-matching without smoothing the observations). %in which case we just use \code{interp1} to obtain the points in time..
+Our implementation of the estimators (\ref{eq:xihat})-(\ref{eq:thetahat}) uses \code{lsqlincon} function of the \pkg{pracma} package, which also allows us to introduce constraints on the parameters.
+
+%
+\subsection{Case (a): ODEs linear in the parameters}
+For simplicity we begin with assuming that the initial conditions $x_1(0), x_2(0)$ are known to the user. Here we also assume that the kinetic parameters are all known, so that our goal is to estimate the vector $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top$. The code for doing so is:
+<<Ssys_example$obs1>>=
+
+lin_pars <- c('alpha1','beta1','alpha2','beta2')
+nlin_pars <- setdiff(pars,lin_pars)
+
+est_lin <- simode(
+  equations=equations, pars=lin_pars, fixed=c(x0,theta[nlin_pars]),
+  time=time, obs=obs)
+
+summary(est_lin)
+@
+%
+The call to \code{simode} returns a \code{simode} object containing the parameters estimates obtained using integral-matching as well as those obtained using nonlinear least squares optimization starting from the integral-matching estimates.
+
+An implementation of the generic plot function for \code{simode} objects can be used to plot the fit obtained using these estimates, either the fit after
+integral-matching and nonlinear least squares optimization (the default), just the integral-matching based fit, or both; see Figure \ref{fig:simplebio3}. In this case, we can also plot the fit against the true curves since we know the true values of the parameters that were used to generate the observations. The same plot function can also be used to show the estimates obtained as demonstrated in the sequel.
+
+\begin{figure}[t!]
+\centering
+<<figure3, echo=TRUE, fig=TRUE, height=5, width=11, fig.show=hold,eval=TRUE>>=
+plot(est_lin, type='fit', pars_true=theta[lin_pars],
+     mfrow=c(1,2),legend=T)
+@
+\caption{\label{fig:simplebio3} Case (a): 'True' and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (\ref{eq:biosimple}).}
+\end{figure}
+
+
+In the code above we have defined which parameters are linear by \code{lin\_pars} and which are not by \code{nlin\_pars}. Then we fixed the set of parameters and initial conditions that we do not want to estimate. However, note that it is not mandatory for the user to know which parameters are linear and which are not. For instance, here is the result of running the estimation without this knowledge:
+%
+<<Ssys_example failed attempt>>=
+est_par <- simode(
+  equations=equations,time=time,pars=pars,fixed=x0,obs=obs)
+@
+%
+As can be seen, the \code{simode} function generates error messages that point out exactly the nonlinear parameters. This is due to the fact that the \code{simode} function considers ODEs linear in the parameters as its default, namely \code{im\_method = "separable"}, unless \code{im\_method = "non-separable"} is defined. This added \code{simode} feature makes it very useful for handling ODEs with linear features in case the mathematical knowledge for characterizing them is lacking.
+
+Now we generate and plot confidence intervals for the parameters using profile likelihood, see Figure \ref{fig:profile_lin}. In case nonlinear optimization for the point estimates was used, then the profiling is done using a Gaussian based likelihood with fixed sigma which we estimate in the background.
+
+<<CIs>>=
+step_size <- 0.01*est_lin$nls_pars_est
+profile_lin <- profile(est_lin,step_size=step_size,max_steps=50)
+confint(profile_lin,level=0.95)
+@
+%
+\begin{figure}[t!]
+\centering
+<<figure4, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+plot(profile_lin, mfrow=c(2,2))
+@
+\caption{\label{fig:profile_lin} Profile likelihood confidence intervals for the linear parameters of the system (\ref{eq:biosimple}).}
+\end{figure}
+%
+%
+\subsection{Case (b): ODEs semi-linear in the parameters}
+Now consider ODEs semi-linear in the parameters where separable nonlinear least squares might be used as in equation (\ref{eq:sepnls}). Thus, the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})^\top=(1,0.5,0.1,1)^\top$ are not assumed to be known and their estimation is needed. Estimating nonlinear parameters requires nonlinear optimization. The function \code{simode} uses the \code{optim} function, thus we need to provide initial guess for optimization. In our example, the true parameter values are known, so we generate random initial guess in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
+
+<<Ssys_example semi-linear>>=
+nlin_init <- rnorm(length(theta[nlin_pars]),theta[nlin_pars],
+                    0.1*theta[nlin_pars])
+names(nlin_init) <- nlin_pars
+
+est_semilin <- simode(
+  equations=equations, pars=pars, fixed=x0, time=time, obs=obs,
+  nlin_pars=nlin_pars, start=nlin_init)
+
+summary(est_semilin)
+@
+%
+We can plot the resulting integral-maching and nonlinear least squares parameter estimates and compare them visualy to their true values, see Figure \ref{fig:caseb_pars}.
+
+\begin{figure}[t!]
+\centering
+<<figure5, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+
+plot(est_semilin, type='est', show='both', pars_true=theta, legend=T)
+@
+\caption{\label{fig:caseb_pars} Case (b) separable: 'True' and estimated parameters of the biochemical system of equation (\ref{eq:biosimple}).}
+\end{figure}
+
+
+So far we have used the default optimization of \code{simode} function which executes separable least squares. However, we could ignore the fact that the ODE we consider has linear features in its parameters. In that case we execute classical nonlinear optimization of the integral-matching criterion function for all the parameters, $\theta_L$, and $\theta_{NL}$.
+
+To run \code{simode} in non-separable mode set the argument \code{im\_method} accordingly. Initial guesses for the nonlinear parameters are still obligatory. Setting initial guesses for the linear parameters is optional in this case. However, unless specifically entered, initial guesses for the optimization used in order to estimate the linear parameters appearing in the integral-matching criterion function are calculated directly using the separability of the model.
+
+<<Ssys_example est_semilin, eval=TRUE>>=
+est_semilin_nosep <- simode(
+  equations=equations, pars=pars, fixed=x0,
+  time=time, obs=obs, nlin_pars=nlin_pars, start=nlin_init,
+  im_method = "non-separable")
+
+summary(est_semilin_nosep)
+@
+
+\begin{figure}[t!]
+\centering
+<<figure6, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+plot(est_semilin_nosep, type='fit', pars_true=theta, mfrow=c(1,2), legend=T)
+@
+\caption{\label{fig:casebnosep} Case (b) non-separable: 'True' and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (\ref{eq:biosimple}).}
+\end{figure}
+
+%
+\subsection{Case (c): ODEs nonlinear in the parameters}
+There are cases where the system of ODEs is not separable, meaning that there are only nonlinear parameters. For instance, consider our toy example where the linear parameters, namely the coefficients are known. Still we may want to use integral-matching since this way we bypass the need for solving numerically the ODEs, at least in the first stage of optimization. Doing so leads to minimization of (\ref{eq:im}) as it is. The resulting code is:
+
+<<Ssys_example case (c), eval=TRUE>>=
+est_nosep <- simode(
+  equations=equations, pars=pars, nlin_pars=pars, start=nlin_init,
+  fixed=c(theta[lin_pars],x0),im_method = 'non-separable',
+  time=time, obs=obs)
+summary(est_nosep)
+@
+
+
+%
+\subsection{Initial conditions $x(0)$ are unknown}
+In the examples above, for simplicity of presentation, we considered the initial conditions to be known. Here is an example of estimating the initial conditions using the separability property of the ODEs as in case (b) (separable) above. We add the names of the unknown $x_0$ variables to the list of parameters to estimate.
+
+<<Ssys_example est x0, eval=TRUE>>=
+
+est_all <- simode(
+  equations=equations, pars=c(pars,names(x0)), time=time, obs=obs,
+  nlin_pars=nlin_pars, start=nlin_init)
+
+summary(est_all)
+@
+
+Note that unless otherwise defined, the \code{simode} method implements the estimator for initial conditions defined in (\ref{eq:xihat}). Alternatively, one could estimate the initial conditions using nonlinear optimization by adding the initial conditions to the \code{nlin\_pars} argument in the call to \code{simode}. However, in that case an intial guess $x_0$ for optimization is required.
+%
+%
+\section{Partially observed systems of ODEs}\label{sec:part}
+
+In general, inference using integral-matching requires a fully observed system. However, in some cases, integral-matching can be applied to a partially observed system. For example, if it is possible to reconstruct the unobserved variables using estimates of the system parameters. We demonstrate this using an example of an ODE system describing the spread of seasonal influenza in multiple age-groups across mutiple seasons. A discrete-time version of the model and a two-stage estimation procedure similar to the one used
+in \pkg{simode}, was described in details in \cite{yaarietal18}. Here we present the model and show how to employ the \pkg{simode} package in order to estimate its parameters.
+
+The model is an SIR-type (Susceptible-Infected-Recovered) model. The epidemic
+in each age-group $1\leq a \leq M$ and each season $1\leq y \leq L$ can be described using two equations for the proportion of susceptible ($S$) and infected ($I$) in the population (the proportion of recovered is given by $1-S-I$):
+
+
+\begin{equation}\label{eq:sir}
+\begin{array}{l}
+S_{a,y}^{\prime}(t)=-S_{a,y}(t)\kappa_y\sum_{j=1}^{M}\beta_{a,j}I_{j,y}(t),
+\\
+I_{a,y}^{\prime}(t)=S_{a,y}(t)\kappa_y\sum_{j=1}^{M}(\beta_{a,j}I_{j,y}(t))-\gamma I_{a,y}(t).
+\end{array}
+\end{equation}
+
+
+The parameters of the model include the $M\times M$ transmission matrix $\beta$, the recovery rate $\gamma$ and $\kappa_{2,...,L}$ which signify the relative infectivity of the influenza virus strains circulating in seasons $2,...,L$ compared to season $1$ ($\kappa_1$ is fixed as $1$). As shown in \cite{yaarietal18}, taking into account separability characteristics of this model is advantageous.
+
+The \pkg{simode} package includes an example dataset called \code{sir\_example}, containing pre-made structures for testing this example. In this dataset there are two age-groups and five influenza seasons, so in total there are $10$ equations for $S$ and $10$ equations for $I$.
+
+<<SIR_example>>=
+data(sir_example)
+summary(sir_example)
+sir_example$beta
+sir_example$gamma
+sir_example$kappa
+sir_example$S0
+@
+
+%
+The dataset contains noisy observations for the $I$ variables created using the parameter and initial condition values given in the example according to model (\ref{eq:sir}), where the measurement errors have a Gaussian distribution with $\sigma=0.001$. There are no observations of the $S$ variables in the example as the proportion of susceptible in the population is typically unknown. Time is given in weeks and include $18$ weeks of observations. The values of the parameters $\beta$ and $\gamma$ are also given assuming a time unit of weeks.
+
+<<SIR_example observations, echo=FALSE, eval=FALSE>>=
+ summary(sir_example$obs)
+@
+
+
+\subsection{Case (a): SIR linear in the parameters}
+
+%
+We begin exploring this example in the simplest case in which we assume all
+the parameter values besides the matrix $\beta$, as well as all the initial conditions are known. However,  the integral-matching method requires a fully observed system while in this case there are no observations for the $S$ variables. Nevertheless, given the observations of the $I$ variables, and given values for the parameter $\gamma$ and the initial conditions $S_{a,y}(0)$, $I_{a,y}(0)$, we can generate observations for the $S$ variables using the formula:
+
+$$S_{a,y}(t)=S_{a,y}(0)+I_{a,y}(0)-I_{a,y}(t)-\gamma \int_{u=1}^{t} I_{a,y}(u)du$$
+
+In the code below, observations for the $S$ variables are generated using the above formula. We then fit the data assuming the parameters $\gamma$ and $\kappa$ and the initial conditions are known. %Setting \code{use\_pars2vars\_mapping} to true in \code{simode.control} helps the integral-matching optimization run faster.
+Resulting data fits and parameter estimates are presented in Figures \ref{fig:sir_a1}-\ref{fig:sir_a2}.
+
+<<SIR_example-estimating-beta, eval=TRUE>>=
+equations <- sir_example$equations
+S0 <- sir_example$S0
+I0 <- sir_example$I0
+beta <- sir_example$beta
+gamma <- sir_example$gamma
+kappa <- sir_example$kappa
+time <- sir_example$time
+I_obs <- sir_example$obs
+S_obs <- lapply(1:length(S0),function(j)
+    S0[j] + I0[j] - I_obs[[j]]
+    - gamma*pracma::cumtrapz(time,I_obs[[j]]))
+names(S_obs) <- names(S0)
+obs <- c(S_obs,I_obs)
+
+x0 <- c(S0,I0)
+pars <- names(beta)
+pars_min <- rep(0,length(pars))
+names(pars_min) <- pars
+
+est_sir_lin <- simode(
+  equations=equations, pars=pars, time=time, obs=obs,
+  fixed=c(gamma,kappa,x0), lower=pars_min)
+
+summary(est_sir_lin)$est
+@
+
+\begin{figure}[t!]
+\centering
+<<figure_sir1a, echo=TRUE, fig=TRUE, height=8, width=7, fig.show##=hold, eval=TRUE>>=
+plot(est_sir_lin, type='fit', which=names(I0),
+     time=seq(1,time[length(time)],by=0.1),
+     pars_true=beta, mfrow=c(5,2))
+@
+\caption{\label{fig:sir_a1} SIR case (a) - fit to observations of $I$}
+\end{figure}
+
+\begin{figure}[t!]
+\centering
+<<figure_sir1b, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+plot(est_sir_lin, type='est', show='both',
+     pars_true=beta, legend=T)
+@
+\caption{\label{fig:sir_a2} SIR case (a) - estimates of $\beta$}
+\end{figure}
+
+\subsection[Case (b1): SIR - semi-linear with unknown initial conditions - gamma and kappa are known]{Case (b1): SIR - semi-linear with unknown initial conditions - $\gamma$ and $\kappa$ are known}
+
+Now let us assume that the initial conditions $S_0$ are not known. In this case, we cannot generate the missing observations for the susceptible variables ahead of time. However, if we run \code{simode} in order to estimate $\beta$ and $S_0$, then for a given set of values of $S_0$ within nonlinear optimization, we can generate the missing observations and estimate $\beta$ using integral-matching. To do this, we need to define a function that will generate the missing observations given the missing parameters, and pass this function in the call to \code{simode} using the \code{gen\_obs} argument. The user-defined \code{gen\_obs} function should accept as arguments the equations, parameter values, initial condition values, time points and observations. Additional arguments could be passed to \code{gen\_obs} by passing them in the call to \code{simode} using the ellipsis construct. The function should return a list with two elements: the element 'obs' which should contain the observations for all the equations in the ODE, and the element 'time' with the time points for the observations (since 'time' can include different time points for each equation). In this example, we define a function that receives additional parameters that include $\gamma$ and the names of the $S$ and $I$ variables. Here is the code for this case followed by estimation results.
+
+<<SIR_example-estimating-beta-and-S0,eval=TRUE>>=
+gen_obs <- function(equations, pars, x0, time, obs,
+                    gamma, S_names, I_names, ...)
+{
+  S0 <- x0[S_names]
+  I0 <- x0[I_names]
+  I_obs <- obs
+  S_obs <- lapply(1:length(S0),function(i)
+    S0[i]+I0[i]-I_obs[[i]]-gamma*pracma::cumtrapz(time,I_obs[[i]]))
+  names(S_obs) <- S_names
+  obs <- c(S_obs,I_obs)
+  return (list(obs=obs, time=time))
+}
+
+pars <- c(names(beta),names(S0))
+pars_min <- rep(0,length(pars))
+names(pars_min) <- pars
+pars_max <- rep(1,length(S0))
+names(pars_max) <- names(S0)
+S0_init <- rep(0.5,length(S0))
+names(S0_init) <- names(S0)
+
+est_sir_semilin <- simode(
+  equations=equations, pars=pars, time=time, obs=I_obs,
+  fixed=c(I0,gamma,kappa), nlin=names(S0), start=S0_init,
+  lower=pars_min, upper=pars_max,  gen_obs=gen_obs,
+  gamma=gamma, S_names=names(S0), I_names=names(I0))
+
+summary(est_sir_semilin)$est
+@
+
+
+\subsection[Case (b2): SIR - semi-linear with unknown initial conditions - gamma and kappa are unknown]{Case (b2): SIR - semi-linear with unknown initial conditions - $\gamma$ and $\kappa$ are unknown}
+
+Finally, we can try and estimate all the model parameters including the nonlinear parameters $\gamma$ and $\kappa_{2,...,5}$. We define the function
+\code{gen\_obs2} in which the value of the parameter $\gamma$ is taken from the \code{pars} argument.
+
+<<SIR_example-estimating-all-pars,eval=TRUE>>=
+gen_obs2 <- function(equations, pars, x0, time, obs,
+                     S_names, I_names, ...)
+{
+  gamma <- pars['gamma']
+  S0 <- x0[S_names]
+  I0 <- x0[I_names]
+  I_obs <- obs
+  S_obs <- lapply(1:length(S0),function(i)
+    S0[i]+I0[i]-I_obs[[i]]-gamma*pracma::cumtrapz(time,I_obs[[i]]))
+  names(S_obs) <- S_names
+  obs <- c(S_obs,I_obs)
+  return (list(obs=obs, time=time))
+}
+
+gamma_init <- 2
+names(gamma_init) <- names(gamma)
+kappa_init <- rep(1,length(kappa))
+names(kappa_init) <- names(kappa)
+
+pars <- names(c(beta,gamma,kappa,S0))
+nlin_pars <- names(c(gamma,kappa,S0))
+start <- c(gamma_init,kappa_init,S0_init)
+names(start) <- nlin_pars
+
+pars_min <- c(rep(0,length(beta)),1.4,rep(0.25,length(kappa)),
+              rep(0,length(S0)))
+pars_max <- c(rep(Inf,length(beta)),3.5,rep(4,length(kappa)),
+              rep(1,length(S0)))
+names(pars_min) <- pars
+names(pars_max) <- pars
+
+est_sir_all <- simode(
+  equations=equations, pars=pars, time=time, obs=I_obs,
+  nlin_pars=nlin_pars, start=start, fixed=I0,
+  lower=pars_min, upper=pars_max,
+  gen_obs=gen_obs2, S_names=names(S0), I_names=names(I0))
+
+summary(est_sir_all)$est
+@
+%
+%
+%
+\section{Additional functionalities of the package}\label{sec:add}
+
+In this section we demonstrate some additional functionalities of the package. We do that using other systems of ODEs in order to further explore the package usability.
+
+\subsection{User defined likelihood function}
+
+Consider the case where the user has her own likelihood function to be used in the second stage of optimization, meaning after the integral-matching stage. The default optimization of the package implements in the second stage the nonlinear least squares loss function (\ref{eq:nls}). This default estimation procedure suffices for the method to result in consistent estimators. However, one may prefer to implement a specific likelihood function, for example a Gaussian distribution with known or unknown variance. We demonstrate this option using as an example the FitzHugh-Nagumo spike potential equations where the ODE model is given by
+%
+\begin{equation}\label{eq:fn}
+\begin{array}{l}
+V^{\prime}(t)=c(V(t)-V(t)^{3}/3+R(t)),
+\\
+R^{\prime}(t)=-(V(t)-a+bR(t))/c.
+\end{array}
+\end{equation}
+See \cite{hooker2015collocinfer} for further explanation of this model. The above system is linear in $a, b$ but nonlinear in $c$. The following code sets the equations, parameters and the 'true' values for initial conditions and parameters:
+<<FN setup, eval=TRUE>>=
+pars <- c('a','b','c')
+vars <- c('V','R')
+eq_V <- 'c*(V-V^3/3+R)'
+eq_R <- '-(V-a+b*R)/c'
+equations <- c(eq_V,eq_R)
+names(equations) <- vars
+x0 <- c(-1,1)
+names(x0) <- vars
+theta <- c(0.2,0.2,3)
+names(theta) <- pars
+@
+The following code generates observations from a Gaussian measurement error model:
+<<FN setup, eval=TRUE>>=
+n <- 40
+time <- seq(0,20,length.out=n)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+set.seed(1000)
+sigma <- 0.05
+obs <- list()
+for(i in 1:length(vars)) {
+  obs[[i]] <- x_det[,i] + rnorm(n,0,sigma)
+}
+names(obs) <- vars
+@
+
+
+Here we implement a Gaussian distribution (negative-log) likelihood function,
+which will be passed in the call to \code{simode} using the \code{calc\_nll} argument. The function should receive as arguments the parameter values, time points, observations and output of the solutions of the ODEs (calculated using the estimated parameter values in the current iteration of the optimization). Additional arguments can be passed to \code{calc\_nll} by passing them in the call to \code{simode} using the ellipsis construct (in this case the parameter \code{sigma} is passed as well). Note that the user-defined likelihood will also be used in the call to profile and the calculation of confidence intervals based on the likelihood profiles. Here is the user defined (negative-log) Gaussian likelihood function,
+
+<<FN lik, eval=TRUE>>=
+calc_nll <- function(pars, time, obs, model_out, sigma, ...) {
+
+  -sum(unlist(lapply(names(obs),function(var) {
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+  })))
+}
+@
+
+
+Now we demonstrate the usage of the likelihood function defined above, where the variance is assumed to be known and therefore is given as a fixed parameter. In this example the nonlinear parameters are assumed to be known. The resulting model fits are presented in Figure \ref{fig:fn}. The parameter estimates are
+
+<<FN0 >>=
+lin_pars <- c('a','b')
+nlin_pars <- c('c')
+
+est_fn <- simode(
+  equations=equations, pars=lin_pars, time=time, obs=obs,
+  fixed=c(x0,theta[nlin_pars]), calc_nll=calc_nll, sigma=sigma)
+
+summary(est_fn)
+@
+%
+\begin{figure}[t!]
+\centering
+<<figure9fn, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+plot(est_fn, type='fit', pars_true=theta[lin_pars],
+     mfrow=c(1,2), legend=T)
+@
+\caption{\label{fig:fn} Solutions $V$ and $R$ of the FitzHugh-Nagum model (\ref{eq:fn}), noisy observations and model fits.}
+\end{figure}
+
+Now the above example is explored but with unknown variance which requires estimation as well. The user likelihood function has to be slightly modified as follows.
+
+
+<<FNnl_sig>>=
+calc_nll_sig <- function(pars, time, obs, model_out, ...) {
+  sigma <- pars['sigma']
+  -sum(unlist(lapply(names(obs),function(var) {
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+  })))
+}
+
+names(sigma) <- 'sigma'
+lik_pars <- names(sigma)
+pars_fn_sig <- c(lin_pars,lik_pars)
+
+init_vals <- NULL
+init_vals[names(sigma)] <- 0.3
+lower <- NULL
+lower[names(sigma)] <- 0
+
+est_fn_sig <- simode(
+  equations=equations, pars=pars_fn_sig, time=time, obs=obs,
+  fixed=c(x0,theta[nlin_pars]), likelihood_pars=lik_pars,
+  start=init_vals, lower=lower, calc_nll=calc_nll_sig)
+
+summary(est_fn_sig)
+@
+
+
+%
+%
+\subsection{Monte Carlo simulations}
+
+Conducting Monte Carlo experiments for ODEs can be an intensive computational task. The \code{simode} function can be given multiple sets of observations
+of a system from Monte Carlo simulations and fit each of these sets separately, returning a list of \code{simode} objects with the parameter estimates obtained from each fit. We demonstrate this using as an example the predator-prey Lotka-Volterra model (\cite{edelstein2005mathematical}) given by the equations ($X$=prey, $Y$=predator):
+
+\begin{equation}\label{eq:lv}
+\begin{array}{l}
+X^{\prime}(t)=\alpha X(t)-\beta X(t) Y(t),
+\\
+Y^{\prime}(t)=\delta X(t)Y(t)-\gamma Y(t).
+\end{array}
+\end{equation}
+
+The Lotka-Volterra system is linear in all of its parameters. The following code sets the equations, parameters and the 'true' values for intial conditions and parameters:
+<<LV setup, eval=TRUE>>=
+pars <- c('alpha','beta','gamma','delta')
+vars <- c('X','Y')
+eq_X <- 'alpha*X-beta*X*Y'
+eq_Y <- 'delta*X*Y-gamma*Y'
+equations <- c(eq_X,eq_Y)
+names(equations) <- vars
+x0 <- c(0.9,0.9)
+names(x0) <- vars
+theta <- c(2/3,4/3,1,1)
+names(theta) <- pars
+@
+Next, we generate ten Monte Carlo sets of observations from a Gaussian measurement error model.
+
+<<LV setup2, eval=TRUE>>=
+n <- 100
+time <- seq(0,25,length.out=n)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+mc_sets <- 10
+mc_obs <- list()
+sigma <- 0.1
+set.seed(1000)
+for(j in 1:mc_sets) {
+  obs <- list()
+  for(i in 1:length(vars)) {
+    obs[[i]] <- rnorm(n,x_det[,i],sigma)
+  }
+  names(obs) <- vars
+  mc_obs[[j]] <- obs
+}
+@
+
+To fit the ten sets of Monte Carlo simulations in one call to \code{simode},
+simply set \code{obs} to the list with the Monte Carlo observations (\code{mc\_obs} in this case) and set the argument \code{mc\_sets} to the number of Monte Carlo sets. By default, the sets will be fitted sequentially. To fit them in parallel, set the control parameter \code{parallel} in \code{simode.control} to true:
+
+<<LV fit, eval=TRUE>>=
+lv_mc <- simode(
+  equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
+  mc_sets=mc_sets, simode_ctrl=simode.control(parallel=T))
+summary(lv_mc,pars_true=c(theta,x0),digits=2)$est
+@
+
+The returned \code{list.simode} object has its own implementation of plot(),
+that shows the mean and standard deviation of the fitted curves (not shown here), or parameter estimates as in Figure \ref{fig:lv1}, obtained from the multiple fits.
+
+\begin{figure}[t!]
+\centering
+<<figure1lv, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+plot(lv_mc, type='est', pars_true=c(theta,x0), legend=T)
+@
+\caption{\label{fig:lv1} Mean and standard deviation of the parameter estimates from ten Monte-Carlo simulations of the Lotka-Volterra model (\ref{eq:lv}).}
+\end{figure}
+%
+%
+\subsection{Models with functions of time}
+
+The ODE equations given to \package{simode} can include any function of time (e.g., forcing functions) using the reserved symbol 't'. To demonstrate this we expand the predator-prey Lotka-Volterra model from the previous section to include seasonal forcing of the predation rate, using two additional parameters that control the amplitude ($\alpha$) and phase ($\omega$) of the forcing:
+
+\begin{equation}\label{eq:lv_force}
+\begin{array}{l}
+X^{\prime}(t)=\alpha X(t)-\beta (1+\epsilon(2\pi (t/T+\omega)))X(t)Y(t),
+\\
+Y^{\prime}(t)=\delta (1+\epsilon (2\pi (t/T+\omega)))X(t)Y(t)-\gammaY(t).
+\end{array}
+\end{equation}
+
+The parameter $T$ sets the periodic time scale and is assumed to be known. The following code sets the equations, parameters and the 'true' values for the initial conditions and parameters assuming $T=50$:
+
+<<LV-forced setup, eval=TRUE>>=
+pars <- c('alpha','beta','gamma','delta','epsilon','omega')
+vars <- c('X','Y')
+eq_X <- 'alpha*X-beta*(1+epsilon*sin(2*pi*(t/50+omega)))*X*Y'
+eq_Y <- 'delta*(1+epsilon*sin(2*pi*(t/50+omega)))*X*Y-gamma*Y'
+equations <- c(eq_X,eq_Y)
+names(equations) <- vars
+x0 <- c(0.9,0.9)
+names(x0) <- vars
+theta <- c(2/3,4/3,1,1,0.2,0.5)
+names(theta) <- pars
+@
+
+The following code generates observations from a Gaussian measurement error model:
+
+<<LV-forced setup2, eval=TRUE>>=
+n <- 100
+time <- seq(0,50,length.out=n)
+model_out <- solve_ode(equations,theta,x0,time)
+x_det <- model_out[,vars]
+set.seed(1000)
+sigma <- 0.1
+obs <- list()
+for(i in 1:length(vars)) {
+  obs[[i]] <- x_det[,i] + rnorm(n,0,sigma)
+}
+names(obs) <- vars
+@
+
+Attempting to fit the model assuming all parameters are linear fails, as
+the parameter $\omega$ is nonlinear in these equations:
+
+<<LV-forced fail1, eval=TRUE>>=
+lv_force <- simode(
+  equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs)
+@
+
+Once $\omega$ is defined as nonlinear we encounter a new message:
+
+<<LV-forced fail2, eval=TRUE>>=
+nlin_pars <- c('omega')
+nlin_init <- 0
+names(nlin_init) <- nlin_pars
+lv_force <- simode(
+  equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs,
+  nlin_pars=nlin_pars, start=nlin_init)
+@
+
+Setting $\epsilon$ as nonlinear we can now proceed with the fit:
+
+<<LV-forced fit, eval=TRUE>>=
+nlin_pars <- c('epsilon','omega')
+nlin_init <- c(0.3,0.3)
+names(nlin_init) <- nlin_pars
+
+pars_min <- c(0,0)
+names(pars_min) <- nlin_pars
+pars_max <- c(1,1)
+names(pars_max) <- nlin_pars
+
+lv_force <- simode(
+  equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs,
+  nlin_pars=nlin_pars, start=nlin_init, lower=pars_min, upper=pars_max)
+
+summary(lv_force)
+@
+
+\begin{figure}[t!]
+\centering
+<<figure_lv_forced_1, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
+plot(lv_force, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+@
+\caption{\label{fig:lv_force} Model fits according to the Lotka-Volterra equations (\ref{eq:lv_force}) using gradient-based ('BFGS') optimization method.}
+\end{figure}
+
+One can see that the resulting model fits presented in Figure \ref{fig:lv_force} are not good. The package enables the user to modify the optimization methods as is possible in the usual \proglang{R} implementation of \code{optim} function. Using simplex ('Nelder-Mead') instead of the gradient-based 'BFGS' method (which we use as a default), the optimization yields the model fits presented in Figure \ref{fig:lv_force_nm} which are much better.
+
+\begin{figure}[t!]
+\centering
+<<figure_lv_forced_2, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
+lv_force_nm <- simode(
+  equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs,
+  nlin_pars=nlin_pars, start=nlin_init, lower=pars_min, upper=pars_max,
+  simode_ctrl=simode.control(im_optim_method='Nelder-Mead',
+                             nls_optim_method='Nelder-Mead'))
+
+plot(lv_force_nm, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+@
+\caption{\label{fig:lv_force_nm} Model fits according to the Lotka-Volterra equations (\ref{eq:lv_force}) using simplex ('Nelder-Mead') optimization method.}
+\end{figure}
+%
+%
+\section{Summary} \label{sec:summary}
+In this paper we presented the \pkg{simode} \proglang{R} package for conducting statistical inference for ordinary differential equations. The package implements a "two-stage" approach where in the first stage fast estimates of the ODEs parameters are calculated, while the second stage applies nonlinear least squares optimization starting from the estimates obtained. The first stage involves the minimization of an integral criterion function (so called "two-step" approach in the literature) and takes into account separability of parameters and ODEs equations, if such a mathematical feature exists. Several optimization schemes are implemented, depending on the separability characteristics of the ODEs. The package can handle partially observed systems, user defined likelihood functions as well as introducing any function of 't'. Confidence intervals for the ODEs parameters can be calculated as well, hence a full estimation pipeline is implemented.
+
+We demonstrated the usability and flexibility of the package via exploring the parameter estimation of different systems of ODEs. Future abilities are now developed, among them the use of kernel smoothing with automatic bandwidth selection as in \cite{dattnergugushvili18}, and a computational efficient parameter estimation for high dimensional systems of ordinary differential equations.
+%
+%
+\section*{Acknowledgments}
+This research was supported by the Israeli Science Foundation grant no. 387/15, and by a Grant from the GIF, the German-Israeli Foundation for Scientific Research and Development number I-2390-304.6/2015.
+
+%\usepackage{natbib}
+%\bibliographystyle{unsrt}
+\bibliography{refs}
+
+
+%% -- Appendix (if any) --------------------------------------------------------
+%% - After the bibliography with page break.
+%% - With proper section titles and _not_ just "Appendix".
+
+%% -----------------------------------------------------------------------------
+
+
+\end{document}

@@ -43,7 +43,7 @@ est_lin <- simode(
   time=time, obs=obs)
 
 est_lin
-plot(est_lin, type='fit', pars_true=theta[lin_pars], mfrow=c(1,2),legend=T)
+plot(est_lin, type='fit', pars_true=theta[lin_pars], legend=T)
 plot(est_lin, type='est', show='both', pars_true=theta[lin_pars], legend=T)
 
 step_size <- 0.01*est_lin$nls_pars_est
@@ -62,7 +62,6 @@ est_semilin <- simode(
   nlin_pars=nlin_pars, start=nlin_init)
 
 est_semilin
-plot(est_semilin, type='fit', pars_true=theta, mfrow=c(1,2),legend=T)
 plot(est_semilin, type='est', show='both', pars_true=theta, legend=T)
 
 ## c) ODE nonlinear in the parameters ----------------------------------
