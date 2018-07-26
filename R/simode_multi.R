@@ -232,18 +232,18 @@ plot_list_simode_est <-
   plot_nls_est <- (show=='nls' || show=='both')
   plot_im_est <- (show=='im' || show=='both')
 
-  sum <- summary(x)
+  if(!is.null(pars_true))
+    stopifnot(is.numeric(pars_true),
+              length(pars_true)==length(x[[1]]$pars))
 
   pars <- which
   if(is.null(pars))
     pars <- x[[1]]$pars
 
-  if(!is.null(pars_true))
-    stopifnot(is.numeric(pars_true), length(pars_true)==length(pars))
-
   lp <- length(pars)
   pind <- which(as.vector(x[[1]]$pars) %in% pars)
 
+  sum <- summary(x)
   im_est_mean <- apply(as.matrix(1:lp),1,function(i) sum$est[pind[i],]$im_mean)
   im_est_sd <- apply(as.matrix(1:lp),1,function(i) sum$est[pind[i],]$im_sd)
   nls_est_mean <- apply(as.matrix(1:lp),1,function(i) sum$est[pind[i],]$nls_mean)
@@ -271,8 +271,8 @@ plot_list_simode_est <-
     y_max <- max(c(y_max,max_im),na.rm=T)
   }
   if(!is.null(pars_true)) {
-    y_min <- min(c(y_min,pars_true),na.rm=T)
-    y_max <- max(c(y_max,pars_true),na.rm=T)
+    y_min <- min(c(y_min,pars_true[pars]),na.rm=T)
+    y_max <- max(c(y_max,pars_true[pars]),na.rm=T)
   }
 
 
@@ -290,7 +290,7 @@ plot_list_simode_est <-
        xlab='parameter', ylab='value', ...)
 
   if(!is.null(pars_true)) {
-    points(x=1:lp, pars_true, col=cols[['true']], pch=4, xaxt="n")
+    points(x=1:lp, pars_true[pars], col=cols[['true']], pch=4, xaxt="n")
     legend_text <- c(legend_text,'true')
     legend_cols <- c(legend_cols,cols[['true']])
     legend_lty <- c(legend_lty,0)

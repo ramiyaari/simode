@@ -1,0 +1,5 @@
+FNEx    Sample FitzHugh-Nagumo system with user-defined likelihood function
+LVMCEx	Sample Lotka-Volterra predator-prey system with monte-carlo simulations
+LVFEx	Sample Lotka-Volterra predator-prey system with seasonal forcing  
+SIREx	Sample multi-group SIR system with user-defined function for generating missing observations
+SsysEx	Sample S-system with likelihood-profiles
