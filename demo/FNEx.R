@@ -16,6 +16,7 @@ names(theta) <- pars
 
 ## generate observations --------------------------------------------
 
+library("simode")
 n <- 40
 time <- seq(0,20,length.out=n)
 model_out <- solve_ode(equations,theta,x0,time)
