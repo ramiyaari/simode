@@ -2,11 +2,15 @@ Package: simode
 Type: Package
 Title: Statistical Inference for Systems of Ordinary Differential Equations using Separable Integral-Matching
 Version: 1.0.1
-Author: Itai Dattner, Rami Yaari
-Maintainer: Itai Dattner <idattner@stat.haifa.ac.il>
+Authors@R: c(
+    person("Itai", "Dattner", email = "idattner@stat.haifa.ac.il", role = c("aut", "cre")),
+    person("Rami", "Yaari", email = "ramiyaari@gmail.com", role = "aut"))
 Description: Implements statistical inference for systems of ordinary differential equations,
   that uses the integral-matching criterion and takes advantage of the separability of parameters,
-  in order to obtain initial parameter estimates for nonlinear least squares optimization.
+  in order to obtain initial parameter estimates for nonlinear least squares optimization. 
+  Dattner & Yaari (2018) <arXiv:1807.04202>. 
+  Dattner et al. (2017) <doi:10.1098/rsif.2016.0525>.
+  Dattner & Klaassen (2015) <doi:10.1214/15-EJS1053>.
 Depends: R (>= 3.4.0)
 Imports: deSolve, pracma, quadprog
 Suggests: 
@@ -19,4 +23,3 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 VignetteBuilder: R.rsp
-

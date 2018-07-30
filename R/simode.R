@@ -752,7 +752,7 @@ simode_create <-
 #' Dattner, Miller, Petrenko, Kadouriz, Jurkevitch & Huppert (2017). Modelling and Parameter Inference of Predator-prey Dynamics in Heterogeneous Environments Using The Direct Integral Approach,
 #' Journal of The Royal Society Interface 14.126: 20160525.
 #' @examples
-#' \dontrun{
+#'
 #' ## =================================================
 #' ## Predator-Prey Lotka-Volterra model
 #' ## =================================================
@@ -770,12 +770,12 @@ simode_create <-
 #' names(theta) <- pars
 #'
 #' ## generate observations
-#' n <- 100
+#' n <- 50
 #' time <- seq(0,25,length.out=n)
 #' model_out <- solve_ode(equations,theta,x0,time)
 #' x_det <- model_out[,vars]
 #' set.seed(1000)
-#' sigma <- 0.1
+#' sigma <- 0.05
 #' obs <- list()
 #' for(i in 1:length(vars)) {
 #'   obs[[i]] <- pmax(0, rnorm(n,x_det[,i],sigma))
@@ -787,6 +787,7 @@ simode_create <-
 #' plot(simode_fit1, type='fit', pars_true=theta, mfrow=c(2,1))
 #' plot(simode_fit1, type='est', pars_true=theta)
 #'
+#' \dontrun{
 #' ## estimate model parameters and initial conditions
 #' simode_fit2 <- simode(equations=equations, pars=c(pars,vars), time=time, obs=obs)
 #' plot(simode_fit2, type='fit', pars_true=c(theta,x0), mfrow=c(2,1))
