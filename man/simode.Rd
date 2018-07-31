@@ -159,13 +159,13 @@ names(obs) <- vars
 
 ## estimate model parameters with known initial conditions
 simode_fit1 <- simode(equations=equations, pars=pars, fixed=x0, time=time, obs=obs)
-plot(simode_fit1, type='fit', pars_true=theta, mfrow=c(2,1))
+plot(simode_fit1, type='fit', time=seq(0,25,length.out=100), pars_true=theta, mfrow=c(2,1))
 plot(simode_fit1, type='est', pars_true=theta)
 
-\dontrun{
+\donttest{
 ## estimate model parameters and initial conditions
 simode_fit2 <- simode(equations=equations, pars=c(pars,vars), time=time, obs=obs)
-plot(simode_fit2, type='fit', pars_true=c(theta,x0), mfrow=c(2,1))
+plot(simode_fit2, type='fit', time=seq(0,25,length.out=100), pars_true=c(theta,x0), mfrow=c(2,1))
 plot(simode_fit2, type='est', pars_true=c(theta,x0))
 
 profiles_fit2 <- profile(simode_fit2,step_size=0.01,max_steps=50)
