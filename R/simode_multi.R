@@ -232,13 +232,14 @@ plot_list_simode_est <-
   plot_nls_est <- (show=='nls' || show=='both')
   plot_im_est <- (show=='im' || show=='both')
 
-  if(!is.null(pars_true))
-    stopifnot(is.numeric(pars_true),
-              length(pars_true)==length(x[[1]]$pars))
-
   pars <- which
   if(is.null(pars))
     pars <- x[[1]]$pars
+
+  if(!is.null(pars_true)) {
+    stopifnot(is.numeric(pars_true))
+    stopifnot(all(pars %in% names(pars_true)))
+  }
 
   lp <- length(pars)
   pind <- which(as.vector(x[[1]]$pars) %in% pars)
@@ -350,7 +351,7 @@ plot_list_simode_est <-
 
 
 plot_list_simode_fit <-
-  function(x, type=c('fit','est'), show=c('nls','im','both'),
+  function(x, show=c('nls','im','both'),
            which=NULL, pars_true=NULL, time=NULL,
            plot_im_smooth=F, legend=F, mfrow=par('mfrow'),
            cols=list(nls_fit="blue",im_fit="green", true="black",
@@ -365,8 +366,10 @@ plot_list_simode_fit <-
   if(is.null(vars))
     vars <- names(x[[1]]$equations)
 
-  if(!is.null(pars_true))
-    stopifnot(is.numeric(pars_true), length(pars_true)==length(x[[1]]$pars))
+  if(!is.null(pars_true)) {
+    stopifnot(is.numeric(pars_true))
+    stopifnot(all(setdiff(x[[1]]$pars,x[[1]]$likelihood_pars) %in% names(pars_true)))
+  }
 
   if(!is.list(x[[1]]$time)) {
     if(is.null(time))

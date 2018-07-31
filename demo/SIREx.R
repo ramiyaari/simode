@@ -68,9 +68,9 @@ est_sir_semilin <- simode(
 
 summary(est_sir_semilin)$est
 plot(est_sir_semilin, type='est', which=names(beta), show='both',
-     pars_true=c(beta,S0), legend=T)
+     pars_true=beta, legend=T)
 plot(est_sir_semilin, type='est', which=names(S0), show='both',
-     pars_true=c(beta,S0), legend=T)
+     pars_true=S0, legend=T)
 
 
 ## c) estimating beta, S0, gamma, kappa -------------------------
@@ -113,11 +113,11 @@ est_sir_all <- simode(
   S_names=names(S0), I_names=names(I0))
 
 summary(est_sir_all)$est
-plot(est_sir_all, type='est', which=names(beta), show='both',
-     pars_true=c(beta,gamma,kappa,S0), legend=T)
+plot(est_sir_all, type='est', which=names(c(beta,gamma)), show='both',
+     pars_true=c(beta,gamma), legend=T)
 plot(est_sir_all, type='est', which=names(S0), show='both',
-     pars_true=c(beta,gamma,kappa,S0), legend=T)
+     pars_true=S0, legend=T)
 plot(est_sir_all, type='est', which=names(kappa), show='both',
-     pars_true=c(beta,gamma,kappa,S0), legend=T)
+     pars_true=kappa, legend=T)
 
 
