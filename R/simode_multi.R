@@ -36,7 +36,7 @@ simode_multi <- function(equations, pars, time, obs, mc_sets,
 
   log_file <- NULL
   if(simode_ctrl$save_to_log) {
-    log_file <- paste0(tempdir(),"\\simode.log")
+    log_file <- file.path(tempdir(),"simode.log")
     simode_ctrl$save_to_log <- F
   }
 

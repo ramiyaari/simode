@@ -220,7 +220,7 @@ solve_ode <- function(equations, pars, x0, time, ...)
   tryCatch(
   {
       if(trace<3){
-        tmpfile <- paste0(tempdir(),'\\simode-ode.log')
+        tmpfile <- file.path(tempdir(),'simode-ode.log')
         sink(file=tmpfile,append=F)
       }
       args <- c(list(y=x0, times=time, func=step_ode_model,

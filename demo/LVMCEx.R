@@ -40,7 +40,7 @@ for(j in 1:mc_sets) {
 
 simode_fits <- simode(
   equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
-  mc_sets=mc_sets, simode_ctrl=simode.control(parallel=T))
+  mc_sets=mc_sets, simode_ctrl=simode.control(parallel=T,save_to_log=T))
 
 summary(simode_fits,pars_true=c(theta[pars],x0))
 

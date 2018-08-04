@@ -839,7 +839,7 @@ simode <- function(equations, pars, time, obs, mc_sets=1,
   simode_obj$extra_args <- list(...)
 
   if(simode_obj$ctrl$save_to_log) {
-    log_file <- paste0(tempdir(),"\\simode.log")
+    log_file <- file.path(tempdir(),"simode.log")
     sink(file=log_file, append=F)
     cat(noquote(paste0("Call to simode on [", Sys.time(), "]:\n")))
   }
@@ -870,12 +870,12 @@ simode_impl <- function(x) {
 simode_cleanup <- function(save_to_log)
 {
   old.options <- options(warn=-1)
-  log_file <- paste0(tempdir(),"\\simode.log")
+  log_file <- file.path(tempdir(),"simode.log")
   if(save_to_log && file.exists(log_file)) {
     sink(NULL)
     cat(paste0('Log file available at: ',log_file))
   }
-  tmpfile <- paste0(tempdir(),'\\simode-ode.log')
+  tmpfile <- file.path(tempdir(),"simode-ode.log")
   if(file.exists(tmpfile)) {
     sink(NULL)
     file.remove(tmpfile)
