@@ -21,7 +21,7 @@
 # the same length and names of equations (numeric vector)
 # @param pars_min Lower bounds for the parameter estimates (numeric vector)
 # @param pars_max Upper bounds for the parameter estimates (numeric vector)
-# @param im_smoothing Whether or not to use smoothing (logical)
+# @param im_smoothing Type of smoothing to use
 # @param im_grid_size Number of points in fitted smoothed curves (numeric)
 # @param vars2update Selected variables that need to be updated from the
 # last call (numeric vector)
@@ -46,8 +46,22 @@ simode_fit <- function(equations, pars, time, obs,
                       im_grid_size=0, bw_factor=1.5,
                       vars2update=NULL, im_fit_prev=NULL, trace=0)
 {
+
+  eq_names <- names(equations)
+  vars <- names(obs)
+
+  v <- length(vars)
+  p <- length(pars)
+  d <- length(eq_names)
+
   if(!is.list(time))
-    time <- rep(list(time),length(obs))
+    time <- rep(list(time),v)
+  names(time) <- vars
+
+  if(all(is.infinite(pars_min)))
+    pars_min <- NULL
+  if(all(is.infinite(pars_max)))
+    pars_max <- NULL
 
   if(!is.null(pars_min))  {
     pars_min[which(is.infinite(pars_min))] <- -1e100
@@ -56,14 +70,17 @@ simode_fit <- function(equations, pars, time, obs,
     pars_max[which(is.infinite(pars_max))] <- 1e100
   }
 
-  vars <- names(equations)
-  d <- length(vars)   #Number of independent variables
-  p <- length(pars)   #Number of parameters
+  if (is.null(x0) || any(is.na(x0))) {
+    x0_min <- pars_min[intersect(names(x0),names(pars_min))]
+    x0_max <- pars_max[intersect(names(x0),names(pars_max))]
+    pars_min <- pars_min[setdiff(names(pars_min),names(x0_min))]
+    pars_max <- pars_max[setdiff(names(pars_max),names(x0_max))]
+  }
 
   min_time <- min(unlist(lapply(1:d,function(i) time[[i]][1])))
   max_time <- max(unlist(lapply(1:d,function(i) time[[i]][length(time[[i]])])))
 
-  if(im_smoothing=='kernel') {
+  if(im_smoothing[1] == "kernel") {
     dt <- min(unlist(lapply(1:d,function(i) diff(time[[i]]))))/2
     t <- seq(min_time, max_time, by = dt)
     N <- length(t)
@@ -85,9 +102,9 @@ simode_fit <- function(equations, pars, time, obs,
   A <- matrix(0, nrow = d, ncol = p)
   B <- matrix(0, nrow = p, ncol = p)
 
-  colnames(im_smooth) <- vars
-  colnames(Z) <- vars
-  rownames(A) <- vars
+  colnames(im_smooth) <- eq_names
+  colnames(Z) <- eq_names
+  rownames(A) <- eq_names
   colnames(A) <- pars
 
   # -----------------------------------------------------------------------------
@@ -119,28 +136,22 @@ simode_fit <- function(equations, pars, time, obs,
     # -----------------------------------------------------------------------------
     # calculate im_smooth ---------------------------------------------------------
 
-    for(j in vars_selected) {
-      if(im_smoothing=='splines') {
-        fit <- smooth.spline(time[[j]],obs[[j]],cv=F)
-        im_smooth[,j] <- predict(fit,x=t)$y
-      }
-      else if(im_smoothing=='kernel') {
-        n <- length(time[[j]])
-        b <- max(1,bw_factor)*max(diff(time[[j]]))
-        for (k in 1:N) {
-          ker <- fun_kernel(time[[j]], t[k], n, b)
-          U <- calc_U(time[[j]], t[k], n, b)
-          B <- calc_B(n, b, U, ker)
-          W <- calc_W(n, b, U, B, ker)
-          im_smooth[k,j] <- sum(obs[[j]]*W)
-        }
-      }
-      else {
-        im_smooth[,j] <- interp1(time[[j]],obs[[j]],xi=t,method='spline')
+    for(j in 1:d) {
+      var <- vars[j]
+      if(j %in% vars_selected)
+        im_smooth[,j] <- smooth_obs(im_smoothing[1],obs[[var]],time[[var]],t,bw_factor)
+      assign(var, im_smooth[,j])
+    }
+    if(v>d) {
+      for(j in (d+1):v) {
+        var <- vars[j]
+        im_smoothing1 <- im_smoothing[1]
+        if(!is.na(im_smoothing[var]))
+           im_smoothing1 <- im_smoothing[var]
+        var_smooth <- smooth_obs(im_smoothing1,obs[[var]],time[[var]],t,bw_factor)
+        assign(var, var_smooth)
       }
     }
-    for(j in 1:d)
-      assign(vars[j], im_smooth[,j])
 
     # -----------------------------------------------------------------------------
     # calculate matrix Z of free-terms --------------------------------------------
@@ -179,7 +190,7 @@ simode_fit <- function(equations, pars, time, obs,
         cumtrapz(u)*dt
       })
     }
-    names(G) <- vars
+    names(G) <- eq_names
 
     # -----------------------------------------------------------------------------
     # calculate matrices A and B --------------------------------------------------
@@ -223,12 +234,15 @@ simode_fit <- function(equations, pars, time, obs,
     if(is.null(x0_est))
       return (NULL)
 
-    names(x0_est) <- vars
+    names(x0_est) <- eq_names
     if(!is.null(x0)) {
       not_na <- which(!is.na(x0))
       x0_est[not_na] <- x0_est[not_na]
     }
     x0 <- x0_est
+    x0[names(x0_min)] <- pmax(x0[names(x0_min)],x0_min)
+    x0[names(x0_max)] <- pmin(x0[names(x0_max)],x0_max)
+
     #if(is.null(pars_min) && is.null(pars_max))
     #  theta <- solve(B)%*%(int2 - t(A)%*%x0)
   }
@@ -251,10 +265,13 @@ simode_fit <- function(equations, pars, time, obs,
   )
   #}
 
-  if(is.null(theta))
-    return (NULL)
+  if(is.null(theta)) {
+      return (NULL)
+  }
 
   names(theta) <- pars
+  # theta[names(pars_min)] <- pmax(theta[names(pars_min)],pars_min)
+  # theta[names(pars_max)] <- pmin(theta[names(pars_max)],pars_max)
 
   im_fit <- list(theta=theta, x0=x0, vars=vars, pars=pars, N=N,
                  t=t, im_smooth=im_smooth, Z=Z, G=G, A=A, B=B)
@@ -262,33 +279,3 @@ simode_fit <- function(equations, pars, time, obs,
   return (im_fit)
 }
 
-############ Kernel related functions #########
-
-fun_kernel <- function(time, t, n, b) {
-  s <- (time - t)/b
-  ker <- 0.75*(1-s^2)*(abs(s)<=1)
-  return (ker)
-}
-
-
-calc_U <- function(time, t, n, b){
-  U <- matrix(0, nrow=2, ncol = n)
-  U[1,] <- 1
-  U[2,] <- (time - t)/b
-  return(U)
-}
-
-calc_B <- function(n, b, U, ker) {
-  B <- matrix(0, nrow = 2, ncol = 2)
-  for(i in 1:n){
-    B <- B + U[,i]%*%t(U[,i])*ker[i]
-  }
-  B <- B/(n*b)
-  return(B)
-}
-
-calc_W <- function(n, b, U, B, ker) {
-  B_inv <- solve(B)
-  W <- apply(matrix(1:n),1, function(i) t(U[,i])%*%B_inv%*%c(1,0)*ker[i])/(n*b)
-  return(W)
-}

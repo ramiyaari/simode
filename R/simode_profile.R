@@ -28,7 +28,7 @@
 #'
 profile.simode <- function(
   fitted, which=NULL, optim_type=c("nls","both"),
-  step_size, max_steps, alpha=0.05, skip_err=T, trace=0, save_to_log=F, ...) {
+  step_size, max_steps=100, alpha=0.05, skip_err=T, trace=0, save_to_log=F, ...) {
 
   optim_type <- match.arg(optim_type)
 
@@ -88,7 +88,7 @@ profile.simode <- function(
   }
 
   if(save_to_log) {
-    log_file <- paste0(tempdir(),"\\simode.log")
+    log_file <- file.path(tempdir(),"simode.log")
     sink(file=log_file, append=T)
     cat(noquote((paste0("Call to profile on [", Sys.time(), "]:\n"))))
   }
@@ -145,7 +145,7 @@ calc_profile <- function(x, par, optim_type, step_size, max_steps,
   init_pars_est_l <- x$nls_pars_est[x$pars]
   init_pars_est_r <- x$nls_pars_est[x$pars]
   step_res <- calc_profile_step(x, par, nls_par_est, is_lik_par,
-                                init_pars_est_l, optim_type, skip_err, trace)
+                                init_pars_est_l, skip_err, trace)
   min_nll <- step_res$nll
   nll_vals <- min_nll
 
@@ -166,7 +166,7 @@ calc_profile <- function(x, par, optim_type, step_size, max_steps,
       }
       step_res <-
         calc_profile_step(x, par, par_val, is_lik_par,
-                          init_pars_est_l, optim_type, skip_err, trace)
+                          init_pars_est_l, skip_err, trace)
       if(!is.null(step_res)) {
         par_vals <- c(unname(par_val),par_vals)
         nll <- step_res$nll
@@ -190,7 +190,7 @@ calc_profile <- function(x, par, optim_type, step_size, max_steps,
       }
       step_res <-
         calc_profile_step(x, par, par_val, is_lik_par,
-                          init_pars_est_r, optim_type, skip_err, trace)
+                          init_pars_est_r, skip_err, trace)
       if(!is.null(step_res)) {
         par_vals <- c(par_vals,unname(par_val))
         nll <- step_res$nll
@@ -205,15 +205,19 @@ calc_profile <- function(x, par, optim_type, step_size, max_steps,
                               round(nll-min_nll,2) ,"]\n"))))
       }
     }
-    if(i >= max_steps || (profile_l_done && profile_r_done))
+    if(profile_l_done && profile_r_done)
       break
+    if(i >= max_steps) {
+      warning('In call to profile - max_steps has been reached')
+      break
+    }
   }
 
   return (list(par_vals=par_vals, nll_vals=nll_vals))
 }
 
 calc_profile_step <- function(x, par, par_val, is_lik_par,
-                              init_pars_est, optim_type, skip_err, trace) {
+                              init_pars_est, skip_err, trace) {
 
   if(is_lik_par)
     x$fixed<- c(x$fixed,par_val)
@@ -223,7 +227,12 @@ calc_profile_step <- function(x, par, par_val, is_lik_par,
     x$equations <- fix_pars(x$equations, par_val)
 
   x$start  <- init_pars_est
-  x <- simode_impl(x)
+
+  if(x$ctrl$optim_type=='both' && x$decouple_equations)
+    x <- simode_decouple(x)
+  else
+    x <- simode_impl(x)
+
   if(is.null(x)) {
     if(!skip_err)
       stop(paste0('Error occurred during profile calculation for parameter [', par, ']\n'))

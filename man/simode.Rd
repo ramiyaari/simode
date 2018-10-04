@@ -5,10 +5,11 @@
 \title{Statistical inference of ordinary differential equations using
 separable integral-matching}
 \usage{
-simode(equations, pars, time, obs, mc_sets = 1, nlin_pars = NULL,
+simode(equations, pars, time, obs, obs_sets = 1, nlin_pars = NULL,
   likelihood_pars = NULL, fixed = NULL, start = NULL, lower = NULL,
   upper = NULL, im_method = c("separable", "non-separable"),
-  gen_obs = NULL, calc_nll = NULL, simode_ctrl = simode.control(), ...)
+  decouple_equations = F, gen_obs = NULL, calc_nll = NULL,
+  simode_ctrl = simode.control(), ...)
 }
 \arguments{
 \item{equations}{Named vector. The equations describing the ODE system.
@@ -16,7 +17,8 @@ Each element of the vector should contain a character representation
 of the right-hand side of an equation, and should be named according to
 the left-hand side of the equation (i.e., the variable name).
 An equation can contain parameters appearing in \code{pars},
-variables appearing in the equations names and/or any function of 't',
+variables appearing in the equations names, observed non-modeled variables
+appearing in \code{obs}, and/or any function of 't',
 which is a reserved symbol for the time domain.}
 
 \item{pars}{The names of the parameters and initial conditions
@@ -31,16 +33,16 @@ if the same time points were used for observing all variables,
 or a list of vectors the length of \code{obs}, of which each element
 is the length of the relevant element in \code{obs}.}
 
-\item{obs}{Named list. The observations. When \code{mc_sets=1}, \code{obs}
-should contain a list of vectors with length <= equations (either partial or fully observed
-system). Each list member should be named according to the relevant equation name and should
-be the length of the relevant time vector. When \code{mc_sets>1}, \code{obs} should contain
-a list the length of \code{mc_sets}, where each list member is a list that fits the
-description in the case of \code{mc_sets=1}.}
+\item{obs}{Named list. The observations. When \code{obs_sets=1}, \code{obs}
+should contain a list of vectors with observations of either a variable described
+by one of the equations (named according to the relevant equation name)
+or a non-modeled variable appearing in one of the equations.
+Each observations vector should be the length of the relevant time vector.
+When \code{obs_sets>1}, \code{obs} should contain a list,
+where each list member is a list that fits the description in the case of \code{obs_sets=1}.}
 
-\item{mc_sets}{Number of monte-carlo expriments. When \code{mc_sets>1}, the function will
-fit each set of observations separately either sequentially or in parallel, according
-to the value of \code{parallel} in \code{simode_ctrl}.}
+\item{obs_sets}{Number of observations sets. When \code{obs_sets>1}, the function will
+fit the set of observations according to the value of \code{obs_sets_fit} in \code{simode_ctrl}.}
 
 \item{nlin_pars}{Names of parameters or initial conditions
 that will be estimated in stage 1 using nonlinear least squares optimization.
@@ -67,6 +69,9 @@ means that linear parameters are estimated directly while "non-separable"
 means that linear parameters are estimated using nonlinear least squares optimization.
 If none of the parameters are linear then the default can be used.}
 
+\item{decouple_equations}{Whether to fit each equation separately
+in the integral-matching stage.}
+
 \item{gen_obs}{A user-defined function for completing missing observations (see Details).}
 
 \item{calc_nll}{A user-defined function for calculating negative log-likelihood for
@@ -77,11 +82,12 @@ the model (see Details).}
 \item{...}{Additional arguments passed to \code{optim}, \code{gen_obs} and \code{calc_nll}}
 }
 \value{
-If mc_sets=1, returns a \code{simode} object containing the
+If \code{obs_sets=1}, the function returns a \code{simode} object containing the
 parameter estimates after integral-matching (stage 1) and after
-nonlinear least squares optimization (stage 2). If \code{mc_sets>1} returns a
-\code{list.simode} object which is a list of \code{simode} objects the length of
-\code{mc_sets}.
+nonlinear least squares optimization (stage 2). If \code{obs_sets>1} and
+\code{obs_sets_fit!="together"} in \code{simode_ctrl}, the function
+returns a \code{list.simode} object which is a list of \code{simode} objects
+the length of \code{obs_sets}.
 }
 \description{
 Estimating the parameters of an ODE system in two stages:

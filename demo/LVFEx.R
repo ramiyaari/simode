@@ -1,7 +1,7 @@
 
-## generate Lotka-Volterra with seasonal-forcing sample data --------
+## generate Lotka-Volterra with closed-form seasonal-forcing sample data --
 
-## generate equations -----------------------------------------------
+## generate equations -----------------------------------------------------
 
 # X=Pred,Y=Prey
 
@@ -41,7 +41,7 @@ names(obs) <- vars
 # fit data  ----------------------------------------------------------
 
 nlin_pars <- c('epsilon','omega')
-nlin_init <- c(0.2,0.2)
+nlin_init <- c(0.3,0.4)
 names(nlin_init) <- nlin_pars
 
 pars_min <- c(0,0)

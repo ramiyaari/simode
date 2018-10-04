@@ -12,7 +12,8 @@ simode.control(optim_type = c("both", "im", "nls"),
   ode_control = list(method = "lsoda"), im_smoothing = c("splines",
   "kernel", "none"), im_grid_size = 0, bw_factor = 1.5,
   use_pars2vars_mapping = F, trace = 0, save_im_trace = F,
-  save_nls_trace = F, save_to_log = F, parallel = F)
+  save_nls_trace = F, obs_sets_fit = c("separate", "separate_x0",
+  "together"), parallel = F, save_to_log = F)
 }
 \arguments{
 \item{optim_type}{Controls what optimization will be performed: either only
@@ -60,13 +61,20 @@ which can then be plotted using \code{\link{plot_trace}}.}
 \item{save_nls_trace}{Whether to save trace information of nonlinear least squares optimization,
 which can then be plotted using \code{\link{plot_trace}}.}
 
-\item{save_to_log}{Controls whether to redirect output to a log file.
-If true, output will be saved to the file 'simode.log' in tempdir.}
+\item{obs_sets_fit}{Controls the way multiple observation sets are fitted:
+either "separate" (each set can be fitted with its own parameter values and initial
+conditions), "separate_x0" (same parameter values fitted for all sets while initial conditions
+may be different for each set) or "together" (fitting the mean of all observations sets).}
 
-\item{parallel}{Controls whether to fit multiple \code{mc_sets} in the call to \code{simode}
-sequentially or in parallel. Fitting in parallel requires that the parallel package will be installed.
+\item{parallel}{Controls whether to fit  sequentially or in parallel multiple observation
+sets (\code{obs_sets>1} in the call to \code{\link{simode}}) that are fitted separately
+(\code{obs_sets_fit="separate"}).
+Fitting in parallel requires that the parallel package will be installed.
 When running in parallel, output will not be displayed regardless of the trace level.
 Instead, one can set \code{save_to_log} to true to save the output to a log file.}
+
+\item{save_to_log}{Controls whether to redirect output to a log file.
+If true, output will be saved to the file 'simode.log' in tempdir.}
 }
 \description{
 Class containing control parameters for a call to \code{simode}
@@ -76,7 +84,6 @@ Possible values for \code{im_smoothing} are “splines” (the default),
 in which case smoothing will be performed using \code{\link[stats]{smooth.spline}}
 with generalized cross-validation, “kernel”, using own kernel smoother function,
 or “none” (using the observations as is, with interpolation if necessary).
-
 \code{use_pars2vars_mapping} controls whether to use a mapping of which equations
 are affected by each of the parameters. When set to true, previous matrices computed as part of
 the integral-matching estimation are stored during the integral-matching optimization,
@@ -87,7 +94,6 @@ setting this option to true can significantly reduce the optimization time durin
 the integral-matching stage (while increasing the storage usage).
 This is especially true with derivative based optimization methods (such as “BFGS” of optim)
 which updates only one of the optimized parameters in each iteration.
-
 \code{trace} has 5 possible levels:\cr
 With trace=0, there would be no output displayed if there are no errors.\cr
 With trace=1, a message will be displayed at the beginning and end of each optimization stage.\cr

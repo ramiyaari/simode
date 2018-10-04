@@ -496,7 +496,7 @@ summary(est_nosep)
 
 
 %
-\subsection{Initial conditions $x(0)$ are unknown}
+\subsection{Initial conditions $x(0)$ are unknown}\label{sub:initunknown}
 In the examples above, for simplicity of presentation, we considered the initial conditions to be known. Here is an example of estimating the initial conditions using the separability property of the ODEs as in case (b) (separable) above. We add the names of the unknown $x_0$ variables to the list of parameters to estimate.
 
 <<Ssys_example est x0, eval=TRUE>>=
@@ -504,7 +504,6 @@ In the examples above, for simplicity of presentation, we considered the initial
 est_all <- simode(
   equations=equations, pars=c(pars,names(x0)), time=time, obs=obs,
   nlin_pars=nlin_pars, start=nlin_init)
-
 summary(est_all)
 @
 
@@ -600,7 +599,7 @@ plot(est_sir_lin, type='fit', which=names(I0),
 
 \begin{figure}[t!]
 \centering
-<<figure_sir1b, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
+<<figure_sir1b, echo=TRUE, fig=TRUE, height=5, width=8, fig.show##=hold, eval=TRUE>>=
 plot(est_sir_lin, type='est', show='both',
      pars_true=beta, legend=T)
 @
@@ -753,10 +752,14 @@ Now we demonstrate the usage of the likelihood function defined above, where the
 <<FN0 >>=
 lin_pars <- c('a','b')
 nlin_pars <- c('c')
+init_vals <-
+  rnorm(length(theta[nlin_pars]),theta[nlin_pars],0.1*theta[nlin_pars])
+names(init_vals) <- nlin_pars
 
 est_fn <- simode(
-  equations=equations, pars=lin_pars, time=time, obs=obs,
-  fixed=c(x0,theta[nlin_pars]), calc_nll=calc_nll, sigma=sigma)
+  equations=equations, pars=pars, time=time, obs=obs,
+  fixed=x0, nlin_pars=nlin_pars, start=init_vals,
+  calc_nll=calc_nll, sigma=sigma)
 
 summary(est_fn)
 @
@@ -764,8 +767,7 @@ summary(est_fn)
 \begin{figure}[t!]
 \centering
 <<figure9fn, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
-plot(est_fn, type='fit', pars_true=theta[lin_pars],
-     mfrow=c(1,2), legend=T)
+plot(est_fn, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
 @
 \caption{\label{fig:fn} Solutions $V$ and $R$ of the FitzHugh-Nagum model (\ref{eq:fn}), noisy observations and model fits.}
 \end{figure}
@@ -783,22 +785,36 @@ calc_nll_sig <- function(pars, time, obs, model_out, ...) {
 
 names(sigma) <- 'sigma'
 lik_pars <- names(sigma)
-pars_fn_sig <- c(lin_pars,lik_pars)
+pars_fn_sig <- c(pars,lik_pars)
 
-init_vals <- NULL
 init_vals[names(sigma)] <- 0.3
 lower <- NULL
 lower[names(sigma)] <- 0
 
 est_fn_sig <- simode(
   equations=equations, pars=pars_fn_sig, time=time, obs=obs,
-  fixed=c(x0,theta[nlin_pars]), likelihood_pars=lik_pars,
+  fixed=x0, nlin_pars=nlin_pars, likelihood_pars=lik_pars,
   start=init_vals, lower=lower, calc_nll=calc_nll_sig)
 
-summary(est_fn_sig)
+summary(est_fn_sig)$est
 @
 
 
+%
+%
+\subsection{System Decoupling}
+\cite{voit2004decoupling} demonsrated that system decoupling combined with data smoothing may lead to better reconstruction of the underlying dynamic system, and to better estimation of parameters. We implemented this functionality within the \code{simode} package. We use the ODE system of the previous example (\ref{eq:fn}) for demonstrating decoupling functionality. The only difference is that we now set \code{decouple\_equations=T} in the \code{simode} function. The resulting integral-matching estimated values are stored in the returned \code{simode} object (as usual). If there is a parameter shared across system equations, the \code{simode} function will use the mean value (across system equations) of these parameter estimates (parameter 'c' in this example). The parameter estimates for each equation before averaging are stored in the \code{simode} object in a matrix called \code{im\_pars\_est\_mat}. In this matrix, parameters that are not part of a given equation are set with NA values.
+
+<<FN_example_decoupling, eval=TRUE>>=
+init_vals <- init_vals[nlin_pars]
+est_fn_d <- simode(
+  equations=equations, pars=pars, time=time, obs=obs,
+  fixed=x0, nlin_pars=nlin_pars, start=init_vals,
+  calc_nll=calc_nll, sigma=sigma, decouple_equations=T)
+
+est_fn_d$im_pars_est_mat
+summary(est_fn_d)$est
+@
 %
 %
 \subsection{Monte Carlo simulations}
@@ -834,11 +850,11 @@ n <- 100
 time <- seq(0,25,length.out=n)
 model_out <- solve_ode(equations,theta,x0,time)
 x_det <- model_out[,vars]
-mc_sets <- 10
+N <- 10
 mc_obs <- list()
 sigma <- 0.1
 set.seed(1000)
-for(j in 1:mc_sets) {
+for(j in 1:N) {
   obs <- list()
   for(i in 1:length(vars)) {
     obs[[i]] <- rnorm(n,x_det[,i],sigma)
@@ -849,36 +865,83 @@ for(j in 1:mc_sets) {
 @
 
 To fit the ten sets of Monte Carlo simulations in one call to \code{simode},
-simply set \code{obs} to the list with the Monte Carlo observations (\code{mc\_obs} in this case) and set the argument \code{mc\_sets} to the number of Monte Carlo sets. By default, the sets will be fitted sequentially. To fit them in parallel, set the control parameter \code{parallel} in \code{simode.control} to true:
+simply set \code{obs} to the list with the Monte Carlo observations (\code{mc\_obs} in this case) and set the argument \code{obs\_sets} to the number of Monte Carlo sets. We set the control parameter \code{obs\_sets\_fit} in \code{simode.control} to 'separate' (the default) to indicate we want to fit each observation set separately. By default, the sets will be fitted sequentially. To fit them in parallel, set the control parameter \code{parallel} in \code{simode.control} to true:
 
 <<LV fit, eval=TRUE>>=
 lv_mc <- simode(
   equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
-  mc_sets=mc_sets, simode_ctrl=simode.control(parallel=T))
-summary(lv_mc,pars_true=c(theta,x0),digits=2)$est
+  obs_sets=N, simode_ctrl=simode.control(parallel=T))
+summary(lv_mc,sum_mean_sd=T,pars_true=c(theta,x0),digits=2)$est
 @
 
-The returned \code{list.simode} object has its own implementation of plot(),
-that shows the mean and standard deviation of the fitted curves (not shown here), or parameter estimates as in Figure \ref{fig:lv1}, obtained from the multiple fits.
+The returned \code{list.simode} object has its own implementation of plot().
+Setting the parameter \code{plot\_mean\_sd=T} the function plots the mean and standard deviation of the fitted curves (not shown here), or parameter estimates as in Figure \ref{fig:lv1}, obtained from the multiple fits.
 
 \begin{figure}[t!]
 \centering
-<<figure1lv, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
-plot(lv_mc, type='est', pars_true=c(theta,x0), legend=T)
+<<figure1lv, echo=TRUE, fig=TRUE, height=5, width=8, fig.show##=hold, eval=TRUE>>=
+plot(lv_mc, type='est', show='both', plot_mean_sd=T,
+     pars_true=c(theta,x0), legend=T)
 @
 \caption{\label{fig:lv1} Mean and standard deviation of the parameter estimates from ten Monte-Carlo simulations of the Lotka-Volterra model (\ref{eq:lv}).}
 \end{figure}
 %
 %
-\subsection{Models with functions of time}
 
-The ODE equations given to \package{simode} can include any function of time (e.g., forcing functions) using the reserved symbol 't'. To demonstrate this we expand the predator-prey Lotka-Volterra model from the previous section to include seasonal forcing of the predation rate, using two additional parameters that control the amplitude ($\alpha$) and phase ($\omega$) of the forcing:
+\subsection{Multiple Subjects}
+There are cases where it is reasonable to consider a model where some parameters are assumed to be the same for all experimental subjects while other parameters are specific to an individual subject; see \cite{wang2014estimating} for an example of mixed-effects modeling. While this is possible to do by defining a large ODE model where each individual has his own equations within this model, here we present an easier way to handle such a scenario using the \code{simode} package. We consider the Lotka-Volterra system (two equations) with $N$ individuals. We assume that all individuals share the same system parameter values, whereas each individual has its own initial values. Hence, we would like to use the information from all individuals for estimating the system parameters. We call \code{simode} with the parameter \code{obs} containing a list of length $N$ (where each member of this list is another list containing the observations for this specific subject), and set the parameter \code{obs\_sets} to $N$. We set the control parameter \code{obs\_sets\_fit} in \code{simode.control} to 'separate\_x0' to indicate we want to fit the same parameter values to all subjects but allow different initial conditions. Running \code{simode} returns an object of class \code{list.simode}, where each \code{simode} object contains the estimates for one individual. The parameter estimates in this case will be the same in each of the objects while the initial conditions estimates may be different. In the example below we set $N=5$. Note that one can use the decoupling option here as well by setting \code{decouple\_equations=T}. In this case, the decoupling is designed such that the parameters of each equation will be estimated using the relevant data from all individuals together.
+
+<<lotka_multi_subject_example, eval=TRUE>>=
+pars <- c('alpha','beta','gamma','delta')
+vars <- c('X','Y')
+eq_X <- 'alpha*X-beta*X*Y'
+eq_Y <- 'delta*X*Y-gamma*Y'
+equations <- c(eq_X,eq_Y)
+names(equations) <- vars
+theta <- c(2/3,4/3,2,1)
+names(theta) <- pars
+
+n <- 100
+time <- seq(0,25,length.out=n)
+N <- 5
+set.seed(1000)
+sigma <- 0.05
+obs <- list()
+x0_vals <- matrix(NA,N,2)
+colnames(x0_vals) <- vars
+for(j in 1:N) {
+  x0 <-rnorm(length(vars),0.9,0.2)
+  x0[x0<0] <- 0
+  x0_vals[j,] <- x0
+  model_out <- solve_ode(equations,theta,x0_vals[j,],time)
+  x_det <- model_out[,vars]
+  obs1 <- list()
+  for(i in 1:length(vars)) {
+    obs1[[i]] <- rnorm(n,x_det[,i],sigma)
+  }
+  names(obs1) <- vars
+  obs[[j]] <- obs1
+}
+
+simode_fits_multi <- simode(
+  equations=equations, pars=c(pars,vars), time=time,
+  obs=obs, obs_sets=N, decouple_equations=T,
+  simode_ctrl=simode.control(obs_sets_fit='separate_x0'))
+
+x0_vals
+summary(simode_fits_multi)
+@
+%
+%
+\subsection{Models with an external input function}
+
+The ODE equations given to \pkg{simode} can include any function of time (e.g., forcing functions) using the reserved symbol 't'. To demonstrate this we expand the predator-prey Lotka-Volterra model from the previous section to include seasonal forcing of the predation rate, using two additional parameters that control the amplitude ($\alpha$) and phase ($\omega$) of the forcing:
 
 \begin{equation}\label{eq:lv_force}
 \begin{array}{l}
-X^{\prime}(t)=\alpha X(t)-\beta (1+\epsilon(2\pi (t/T+\omega)))X(t)Y(t),
+X^{\prime}(t)=\alpha X(t)-\beta (1+\epsilon\sin (2\pi (t/T+\omega)))X(t)Y(t),
 \\
-Y^{\prime}(t)=\delta (1+\epsilon (2\pi (t/T+\omega)))X(t)Y(t)-\gammaY(t).
+Y^{\prime}(t)=\delta (1+\epsilon\sin (2\pi (t/T+\omega)))X(t)Y(t)-\gamma Y(t).
 \end{array}
 \end{equation}
 
@@ -901,7 +964,7 @@ The following code generates observations from a Gaussian measurement error mode
 
 <<LV-forced setup2, eval=TRUE>>=
 n <- 100
-time <- seq(0,50,length.out=n)
+time <- seq(1,50,length.out=n)
 model_out <- solve_ode(equations,theta,x0,time)
 x_det <- model_out[,vars]
 set.seed(1000)
@@ -932,7 +995,8 @@ lv_force <- simode(
   nlin_pars=nlin_pars, start=nlin_init)
 @
 
-Setting $\epsilon$ as nonlinear we can now proceed with the fit:
+Setting $\epsilon$ as nonlinear we can now proceed with the fit.
+The package enables the user to modify the optimization methods as is possible in the usual \proglang{R} implementation of \code{optim} function. Here we use the simplex ('Nelder-Mead') method instead of the gradient-based 'BFGS' method (the default), which yields the model fits presented in Figure \ref{fig:lv_force_nm}.
 
 <<LV-forced fit, eval=TRUE>>=
 nlin_pars <- c('epsilon','omega')
@@ -944,36 +1008,60 @@ names(pars_min) <- nlin_pars
 pars_max <- c(1,1)
 names(pars_max) <- nlin_pars
 
-lv_force <- simode(
-  equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs,
-  nlin_pars=nlin_pars, start=nlin_init, lower=pars_min, upper=pars_max)
-
-summary(lv_force)
-@
-
-\begin{figure}[t!]
-\centering
-<<figure_lv_forced_1, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
-plot(lv_force, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
-@
-\caption{\label{fig:lv_force} Model fits according to the Lotka-Volterra equations (\ref{eq:lv_force}) using gradient-based ('BFGS') optimization method.}
-\end{figure}
-
-One can see that the resulting model fits presented in Figure \ref{fig:lv_force} are not good. The package enables the user to modify the optimization methods as is possible in the usual \proglang{R} implementation of \code{optim} function. Using simplex ('Nelder-Mead') instead of the gradient-based 'BFGS' method (which we use as a default), the optimization yields the model fits presented in Figure \ref{fig:lv_force_nm} which are much better.
-
-\begin{figure}[t!]
-\centering
-<<figure_lv_forced_2, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
-lv_force_nm <- simode(
+lv_force1 <- simode(
   equations=equations, pars=pars, fixed=c(x0), time=time, obs=obs,
   nlin_pars=nlin_pars, start=nlin_init, lower=pars_min, upper=pars_max,
   simode_ctrl=simode.control(im_optim_method='Nelder-Mead',
                              nls_optim_method='Nelder-Mead'))
+summary(lv_force1)$est
+@
 
-plot(lv_force_nm, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+
+\begin{figure}[t!]
+\centering
+<<figure_lv_forced_1, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
+plot(lv_force1, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
 @
 \caption{\label{fig:lv_force_nm} Model fits according to the Lotka-Volterra equations (\ref{eq:lv_force}) using simplex ('Nelder-Mead') optimization method.}
 \end{figure}
+
+
+The above example is based on an explicit input function $\sin(t)$. However, one can think of cases where we would like to use a general input, not necessarily for which there is a closed form. In such a case one would incorporate the external input by adding it to the list of observations (the \code{obs} parameter) and referencing it in the equations using the same name:
+
+<<lotka_external>>=
+pars <- c('alpha','beta','gamma','delta','epsilon')
+vars <- c('X','Y')
+eq_X <- 'alpha*X-beta*(1+epsilon*seasonality)*X*Y'
+eq_Y <- 'delta*(1+epsilon*seasonality)*X*Y-gamma*Y'
+equations <- c(eq_X,eq_Y)
+names(equations) <- vars
+x0 <- c(0.9,0.9)
+names(x0) <- vars
+theta <- c(2/3,4/3,1,1,0.2)
+names(theta) <- pars
+n <- 100
+time <- seq(1,50,length.out=n)
+seasonality <- rep(c(rep(0,10),rep(1,10)),5)
+xvars <- list(seasonality=seasonality)
+model_out <- solve_ode(equations,theta,x0,time,xvars)
+x_det <- model_out[,vars]
+set.seed(1000)
+sigma <- 0.1
+obs <- list()
+for(i in 1:length(vars)) {
+  obs[[i]] <- x_det[,i] + rnorm(n,0,sigma)
+}
+names(obs) <- vars
+nlin_pars <- c('epsilon')
+nlin_init <- 0.2
+names(nlin_init) <- nlin_pars
+lv_force2 <- simode(
+  equations=equations, pars=pars, fixed=x0, time=time, obs=c(obs,xvars),
+  nlin_pars=nlin_pars, start=nlin_init)
+summary(lv_force2)$est
+@
+
+
 %
 %
 \section{Summary} \label{sec:summary}
@@ -990,10 +1078,11 @@ This research was supported by the Israeli Science Foundation grant no. 387/15, 
 \bibliography{refs}
 
 
+
 %% -- Appendix (if any) --------------------------------------------------------
 %% - After the bibliography with page break.
 %% - With proper section titles and _not_ just "Appendix".
-
+%\section{Appendix}
 %% -----------------------------------------------------------------------------
 
 

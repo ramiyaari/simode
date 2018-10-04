@@ -4,7 +4,7 @@
 \alias{solve_ode}
 \title{Ordinary differential equations solver}
 \usage{
-solve_ode(equations, pars, x0, time, ...)
+solve_ode(equations, pars, x0, time, xvars = NULL, ...)
 }
 \arguments{
 \item{equations}{The equations describing the ODE system. See \link{simode}.}
@@ -14,6 +14,8 @@ solve_ode(equations, pars, x0, time, ...)
 \item{x0}{The initial conditions. Named accroding to the names of \code{equations}.}
 
 \item{time}{The time points for which the ODE variables' values will be computed.}
+
+\item{xvars}{External observations of time-dependant variables refered to in \code{equations}}
 
 \item{...}{Additional argument(s) for methods.}
 }

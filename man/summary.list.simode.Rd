@@ -4,14 +4,20 @@
 \alias{summary.list.simode}
 \title{Summary method for \code{list.simode} objects}
 \usage{
-\method{summary}{list.simode}(object, pars_true = NULL, digits = max(3,
-  getOption("digits") - 3), ...)
+\method{summary}{list.simode}(object, sum_mean_sd = F, pars_true = NULL,
+  digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{object}{\code{list.simode} object returned by a call to \code{\link{simode}}
-with \code{mc_sets>1}}
+with \code{obs_sets>1}}
 
-\item{pars_true}{The true parameter values (if known).}
+\item{sum_mean_sd}{Whether to calculate mean and standard deviation
+for the parameter estimates in the fits included in the given \code{object}.
+To be used when \code{object} is the result of fitting monte-carlo simulations.}
+
+\item{pars_true}{The true parameter values (relevant only for
+when \code{sum_mean_sd=T}). When given, the summary will also include the
+bias and RMSE for each parameter estimate.}
 
 \item{digits}{The number of significant digits to use.}
 

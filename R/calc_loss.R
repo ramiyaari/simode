@@ -232,15 +232,21 @@ calc_nls_loss <- function(pars, equations, x0, time, obs,
     names(time) <- names(obs)
   }
 
+  xvars_obs <- NULL
+  xvars = setdiff(names(obs),names(equations))
+  if(length(xvars)>0)
+    xvars_obs <- obs[xvars]
+
   args <- c(list(equations=equations, pars=non_x0_pars,
-                 x0=x0, time=time_ode, trace=trace), ode_control)
+                 x0=x0, time=time_ode, xvars=xvars_obs, trace=trace), ode_control)
   model_out <- do.call(solve_ode, args)
 
   if(is.null(model_out) || (length(model_out[,1]) != length(time_ode))) {
     return (Inf)
   }
 
-  nls_loss <- calc_nll(pars=c(pars,fixed), time=time, obs=obs, model_out=model_out, ...)
+  eq_obs <- obs[intersect(names(obs),names(equations))]
+  nls_loss <- calc_nll(pars=c(pars,fixed), time=time, obs=eq_obs, model_out=model_out, ...)
 
   if(is.na(nls_loss) || is.nan(nls_loss))
     return (Inf)

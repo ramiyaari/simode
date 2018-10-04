@@ -8,6 +8,8 @@ setdiff1 <- function(A, B) {
 }
 
 setdiff2 <- function(A, B) {
+  if(is.null(names(A)))
+    return (A)
   res <- A[setdiff(names(A),B)]
   if(length(res)==0)
     res <- NULL
@@ -85,17 +87,19 @@ check_linearity <- function(equations, pars) {
   if(!linear)
     return (F)
 
-  for(k in 1:length(equations)) {
-    for(i in 1:(length(pars)-1)) {
-      eq.deriv <- D(equations[k], pars[i])
-      for(j in (i+1):length(pars)) {
-        eq.deriv2 <- deparse(D(eq.deriv, pars[j]))
-        if(eq.deriv2[1] != "0")
-        {
-          cat(noquote(paste0('Problem in eq.', k, ' [', eq_names[k],
-                             '] - parameter [', pars[i], '] or [', pars[j],
-                             '] should be set as non-linear\n')))
-          linear <- F
+  if(length(pars) > 1) {
+    for(k in 1:length(equations)) {
+      for(i in 1:(length(pars)-1)) {
+        eq.deriv <- D(equations[k], pars[i])
+        for(j in (i+1):length(pars)) {
+          eq.deriv2 <- deparse(D(eq.deriv, pars[j]))
+          if(eq.deriv2[1] != "0")
+          {
+            cat(noquote(paste0('Problem in eq.', k, ' [', eq_names[k],
+                               '] - parameter [', pars[i], '] or [', pars[j],
+                               '] should be set as non-linear\n')))
+            linear <- F
+          }
         }
       }
     }
@@ -107,7 +111,7 @@ check_linearity <- function(equations, pars) {
 
 check_obs_validity <- function(obs,time,vars) {
 
-  stopifnot(length(vars)==length(obs),all(vars==names(obs)))
+  stopifnot(length(vars)<=length(obs),all(vars %in% names(obs)))
   stopifnot(is.numeric(time) || (is.list(time) && length(time)==length(obs)))
   for(i in 1:length(obs)) {
     if(is.numeric(time))
@@ -193,13 +197,14 @@ add_linked_vars <- function(par, var, pars2vars, vars2vars)
 #' @param pars The parameter values. Named according to their names in \code{equations}.
 #' @param x0 The initial conditions. Named accroding to the names of \code{equations}.
 #' @param time The time points for which the ODE variables' values will be computed.
+#' @param xvars External observations of time-dependant variables refered to in \code{equations}
 #' @param ... Additional argument(s) for methods.
 #' @return A matrix whose first column contains the given time points
 #' and subsequent columns hold the computed ODE equations' values at these time points.
 #' @importFrom deSolve ode
 #' @export
 #'
-solve_ode <- function(equations, pars, x0, time, ...)
+solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
 {
   stopifnot(length(equations)==length(x0),
             !is.null(names(equations)),
@@ -207,8 +212,38 @@ solve_ode <- function(equations, pars, x0, time, ...)
             all(names(x0)==names(equations)))
 
   equations <- fix_pars(equations, pars)
+  if(!is.null(xvars) && length(xvars)>0) {
+    stopifnot(is.list(xvars))
+    for(j in 1:length(xvars)) {
+      stopifnot(!is.null(names(xvars[j])))
+      xvar_name <- names(xvars[j])
+      equations <- gsub(paste0('\\<',xvar_name,'\\>'),
+                        paste0(xvar_name,"[which.min(abs(times2-t))]"),equations)
+    }
+  }
   equations <- lapply(1:length(equations), function(i) parse(text=equations[i]))
   names(equations) <- names(x0)
+
+  # dxvars <- list()
+  # if(!is.null(xvars) && length(xvars)>0) {
+  #   stopifnot(is.list(xvars))
+  #   for(j in 1:length(xvars)) {
+  #     stopifnot(!is.null(names(xvars[j])))
+  #     dxvars[[j]] <- c(diff(xvars[[j]])/diff(time),0)
+  #   }
+  #   eq_xvars <- vector(length=length(xvars))
+  #   xvars_names <- names(xvars)
+  #   eq_xvars <- lapply(1:length(eq_xvars), function(i) {
+  #     # parse(text=paste0(xvars_names[i],'_d[floor(t)]'))
+  #     parse(text=paste0(xvars_names[i],'_d[which.min(abs(times2-t))]'))
+  #   })
+  #   names(dxvars) <- paste0(xvars_names,'_d')
+  #   names(eq_xvars) <- xvars_names
+  #   equations <- c(equations,eq_xvars)
+  #   x0_xvars <- unlist(lapply(1:length(xvars), function(i) xvars[[i]][1]))
+  #   names(x0_xvars) <- xvars_names
+  #   x0 <- c(x0,x0_xvars)
+  # }
 
   arg_list <- list(...)
   trace <- arg_list$trace
@@ -224,10 +259,8 @@ solve_ode <- function(equations, pars, x0, time, ...)
         sink(file=tmpfile,append=F)
       }
       args <- c(list(y=x0, times=time, func=step_ode_model,
-                     parms=pars, equations=equations),arg_list)
+                     parms=pars, equations=equations, xvars=xvars, times2=time),arg_list)
       out <- do.call("ode", args)
-      #out <- ode(y=x0, times=time, func=step_ode_model,
-      #           parms=pars, equations=equations, ...)
       if(trace<3)
         sink(NULL)
     },
@@ -247,12 +280,66 @@ solve_ode <- function(equations, pars, x0, time, ...)
   return (out)
 }
 
-step_ode_model <- function(t, states, pars, equations)
+step_ode_model <- function(t, states, pars, equations, xvars, times2)
 {
-  with(as.list(states), {
+  with(as.list(c(states,xvars)), {
     delta_states <- unlist(lapply(1:length(equations),function(i) eval(equations[[i]])))
     return (list(delta_states))
   })
 }
 
+smooth_obs <- function(im_smoothing=c('splines','kernel','none'),obs,time,t,bw_factor) {
+
+  if(im_smoothing=='splines') {
+    fit <- smooth.spline(time,obs,cv=F)
+    sobs <- predict(fit,x=t)$y
+  }
+  else if(im_smoothing=='kernel') {
+    N <- length(t)
+    n <- length(time)
+    b <- max(1,bw_factor)*max(diff(time))
+    sobs <- c()
+    for (k in 1:N) {
+      ker <- fun_kernel(time, t[k], n, b)
+      U <- calc_U(time, t[k], n, b)
+      B <- calc_B(n, b, U, ker)
+      W <- calc_W(n, b, U, B, ker)
+      sobs[k] <- sum(obs*W)
+    }
+  }
+  else {
+    sobs <- interp1(time,obs,xi=t,method='spline')
+  }
+  return (sobs)
+}
+
+############ Kernel related functions #########
+
+fun_kernel <- function(time, t, n, b) {
+  s <- (time - t)/b
+  ker <- 0.75*(1-s^2)*(abs(s)<=1)
+  return (ker)
+}
+
+calc_U <- function(time, t, n, b){
+  U <- matrix(0, nrow=2, ncol = n)
+  U[1,] <- 1
+  U[2,] <- (time - t)/b
+  return(U)
+}
+
+calc_B <- function(n, b, U, ker) {
+  B <- matrix(0, nrow = 2, ncol = 2)
+  for(i in 1:n){
+    B <- B + U[,i]%*%t(U[,i])*ker[i]
+  }
+  B <- B/(n*b)
+  return(B)
+}
+
+calc_W <- function(n, b, U, B, ker) {
+  B_inv <- solve(B)
+  W <- apply(matrix(1:n),1, function(i) t(U[,i])%*%B_inv%*%c(1,0)*ker[i])/(n*b)
+  return(W)
+}
 

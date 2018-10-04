@@ -1,5 +1,7 @@
+CLVEx   Sample competitive Lotka-Volterra system with multiple observation sets using decoupling
 FNEx    Sample FitzHugh-Nagumo system with user-defined likelihood function
-LVMCEx	Sample Lotka-Volterra predator-prey system with monte-carlo simulations
-LVFEx	Sample Lotka-Volterra predator-prey system with seasonal forcing  
+LVMCEx	Sample Lotka-Volterra system with monte-carlo simulations
+LVFEx	Sample Lotka-Volterra system with closed-form seasonal forcing
+LVFEx2	Sample Lotka-Volterra system with external seasonal forcing
 SIREx	Sample multi-group SIR system with user-defined function for generating missing observations
 SsysEx	Sample S-system with likelihood-profiles

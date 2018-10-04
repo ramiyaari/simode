@@ -81,6 +81,8 @@ est_all <- simode(
   equations=equations, pars=c(pars,names(x0)), time=time, obs=obs,
   nlin_pars=nlin_pars, start=nlin_init)
 
-summary(est_all)
+est_all
 plot(est_all, type='est', show='both', pars_true=c(theta,x0), legend=T)
+
+
 

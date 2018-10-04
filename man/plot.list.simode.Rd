@@ -6,12 +6,12 @@
 \usage{
 \method{plot}{list.simode}(x, type = c("fit", "est"), show = c("nls", "im",
   "both"), which = NULL, pars_true = NULL, time = NULL,
-  plot_im_smooth = F, legend = F, mfrow = par("mfrow"),
-  cols = list(nls_fit = "blue", im_fit = "green", true = "black", obs = "red",
-  im_smooth = "magenta"), ...)
+  plot_mean_sd = F, plot_im_smooth = F, legend = F,
+  mfrow = par("mfrow"), cols = list(nls_fit = "blue", im_fit = "green", true
+  = "black", obs = "red", im_smooth = "magenta"), ...)
 }
 \arguments{
-\item{x}{\code{simode} object returned by a call to \code{\link{simode}}.}
+\item{x}{\code{list.simode} object.}
 
 \item{type}{Type of plot - 'fit' to plot the fitted equations
 and 'est' to plot the parameter estimates.}
@@ -31,6 +31,10 @@ the variables/parameters will be added to the plot.}
 (relevant only for \code{type='fit'}).
 If not given then the time points of the observations in x will be used.}
 
+\item{plot_mean_sd}{Plot the mean and standard deviation for the fit/estimates
+of the \code{simode} objects in \code{x}. To be used when \code{x} is the
+result of fitting monte-carlo simulations.}
+
 \item{plot_im_smooth}{Whether or not to plot the smoothed curves created and
 used by the integral-matching procedure (relevant only for \code{type='fit'}).}
 
@@ -45,6 +49,5 @@ subplots in one plot (see also \code{\link{par}}).}
 }
 \description{
 Plot the fit or parameter estimates obtained from a call to \code{simode}
-with \code{mc_sets>1}. Plots the mean and standard deviation obtained from
-the multiple fits.
+with \code{obs_sets>1}.
 }

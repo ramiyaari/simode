@@ -5,8 +5,8 @@
 \title{Calculate likelihood profiles for the model parameters}
 \usage{
 \method{profile}{simode}(fitted, which = NULL, optim_type = c("nls",
-  "both"), step_size, max_steps, alpha = 0.05, skip_err = T, trace = 0,
-  save_to_log = F, ...)
+  "both"), step_size, max_steps = 100, alpha = 0.05, skip_err = T,
+  trace = 0, save_to_log = F, ...)
 }
 \arguments{
 \item{fitted}{\code{simode} object returned by a call to \code{\link{simode}}.}

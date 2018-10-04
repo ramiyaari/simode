@@ -32,17 +32,22 @@
 #' which can then be plotted using \code{\link{plot_trace}}.
 #' @param save_nls_trace Whether to save trace information of nonlinear least squares optimization,
 #' which can then be plotted using \code{\link{plot_trace}}.
-#' @param save_to_log Controls whether to redirect output to a log file.
-#' If true, output will be saved to the file 'simode.log' in tempdir.
-#' @param parallel Controls whether to fit multiple \code{mc_sets} in the call to \code{simode}
-#' sequentially or in parallel. Fitting in parallel requires that the parallel package will be installed.
+#' @param obs_sets_fit Controls the way multiple observation sets are fitted:
+#' either "separate" (each set can be fitted with its own parameter values and initial
+#' conditions), "separate_x0" (same parameter values fitted for all sets while initial conditions
+#' may be different for each set) or "together" (fitting the mean of all observations sets).
+#' @param parallel Controls whether to fit  sequentially or in parallel multiple observation
+#' sets (\code{obs_sets>1} in the call to \code{\link{simode}}) that are fitted separately
+#' (\code{obs_sets_fit="separate"}).
+#' Fitting in parallel requires that the parallel package will be installed.
 #' When running in parallel, output will not be displayed regardless of the trace level.
 #' Instead, one can set \code{save_to_log} to true to save the output to a log file.
+#' @param save_to_log Controls whether to redirect output to a log file.
+#' If true, output will be saved to the file 'simode.log' in tempdir.
 #' @details Possible values for \code{im_smoothing} are “splines” (the default),
 #' in which case smoothing will be performed using \code{\link[stats]{smooth.spline}}
 #' with generalized cross-validation, “kernel”, using own kernel smoother function,
 #' or “none” (using the observations as is, with interpolation if necessary).
-#'
 #' \code{use_pars2vars_mapping} controls whether to use a mapping of which equations
 #' are affected by each of the parameters. When set to true, previous matrices computed as part of
 #' the integral-matching estimation are stored during the integral-matching optimization,
@@ -53,7 +58,6 @@
 #' the integral-matching stage (while increasing the storage usage).
 #' This is especially true with derivative based optimization methods (such as “BFGS” of optim)
 #' which updates only one of the optimized parameters in each iteration.
-#'
 #' \code{trace} has 5 possible levels:\cr
 #' With trace=0, there would be no output displayed if there are no errors.\cr
 #' With trace=1, a message will be displayed at the beginning and end of each optimization stage.\cr
@@ -75,7 +79,8 @@ simode.control <- function(optim_type=c("both","im","nls"),
                           im_grid_size=0, bw_factor=1.5,
                           use_pars2vars_mapping=F,
                           trace=0, save_im_trace=F, save_nls_trace=F,
-                          save_to_log=F, parallel=F)
+                          obs_sets_fit=c('separate','separate_x0','together'),
+                          parallel=F, save_to_log=F)
 {
 
   simode_ctrl <- list()
@@ -92,6 +97,8 @@ simode.control <- function(optim_type=c("both","im","nls"),
 
   simode_ctrl$im_smoothing <- match.arg(im_smoothing)
   simode_ctrl$im_grid_size <- im_grid_size
+
+  stopifnot(bw_factor>=1)
   simode_ctrl$bw_factor <- bw_factor
 
   simode_ctrl$trace <- trace
@@ -103,9 +110,12 @@ simode.control <- function(optim_type=c("both","im","nls"),
   simode_ctrl$save_im_trace <- save_im_trace
   simode_ctrl$save_nls_trace <- save_nls_trace
 
+  simode_ctrl$obs_sets_fit <- match.arg(obs_sets_fit)
+  simode_ctrl$parallel <- parallel
+
   simode_ctrl$save_to_log <- save_to_log
 
-  simode_ctrl$parallel <- parallel
+  simode_ctrl$decouple_sep <- '__'
 
   class(simode_ctrl) <- "simode.control"
 
@@ -222,7 +232,6 @@ simode_linear <- function(simode_obj, simode_env, ...) {
     lin_pars_min <- simode_obj$lower[lin_pars]
     lin_pars_max <- simode_obj$upper[lin_pars]
 
-    #if(ctrl$check_linearity) {
     if(!check_linearity(equations, lin_pars))
       return (NULL)
     #}
@@ -235,8 +244,7 @@ simode_linear <- function(simode_obj, simode_env, ...) {
       lin_pars_names=lin_pars,lin_pars_min=lin_pars_min,
       lin_pars_max=lin_pars_max, gen_obs=gen_obs,
       im_smoothing=ctrl$im_smoothing, im_grid_size=ctrl$im_grid_size,
-      bw_factor=ctrl$bw_factor, trace=ctrl$trace+1, save_im_trace=F,
-      simode_env=simode_env, ...)
+      bw_factor=ctrl$bw_factor, trace=ctrl$trace+1, save_im_trace=F, simode_env=simode_env, ...)
 
     if(is.infinite(im_loss) || is.null(im_loss)) {
       cat('Error during integral-matching estimation\n')
@@ -325,8 +333,11 @@ simode_nonlinear <- function(simode_obj, simode_env, ...) {
 
     im_pars <- setdiff(pars,likelihood_pars)
     lin_pars <- setdiff(im_pars,c(nlin_pars,names(x0)))
-    lin_pars_min <- pars_min[lin_pars]
-    lin_pars_max <- pars_max[lin_pars]
+    #lin_pars <- setdiff(im_pars,nlin_pars)
+    #lin_pars_min <- pars_min[lin_pars]
+    #lin_pars_max <- pars_max[lin_pars]
+    lin_pars_min <- pars_min[setdiff(im_pars,nlin_pars)]
+    lin_pars_max <- pars_max[setdiff(im_pars,nlin_pars)]
 
     #if(ctrl$check_linearity) {
     if(!pracma::isempty(lin_pars) && !check_linearity(equations, lin_pars))
@@ -430,8 +441,8 @@ simode_nonlinear <- function(simode_obj, simode_env, ...) {
 
   if(do_nls_opt) {
 
-  # -----------------------------------------------------------------------------
-  # running optim using full likelihood ------------------------------------
+    # -----------------------------------------------------------------------------
+    # running optim using full likelihood ------------------------------------
 
     optim_args <-
       list(par=pars_est, fn=calc_nls_loss,
@@ -461,7 +472,8 @@ simode_create <-
   function(call, equations, pars, time, obs,
            nlin_pars, likelihood_pars,
            fixed, start, lower, upper,
-           im_method, gen_obs, calc_nll, simode_ctrl) {
+           im_method, decouple_equations,
+           gen_obs, calc_nll, simode_ctrl) {
 
   stopifnot(is.character(equations), is.character(pars))
 
@@ -477,10 +489,11 @@ simode_create <-
     stopifnot(is.numeric(fixed),!is.null(fixed_names))
     fixed_x0 <- intersect(fixed_names,names(equations))
     x0[fixed_x0] <- fixed[fixed_x0]
-    fixed_pars <- fixed[setdiff(fixed_names,c(fixed_x0,likelihood_pars))]
-    if(length(fixed_pars)>0) {
-      equations <- fix_pars(equations, fixed_pars)
-    }
+    fixed <- fixed[setdiff(fixed_names,c(fixed_x0,likelihood_pars))]
+    if(length(fixed)>0)
+      equations <- fix_pars(equations, fixed)
+    else
+      fixed <- NULL
     pars <- setdiff1(pars, fixed_names)
     nlin_pars <- setdiff1(nlin_pars, fixed_names)
     # likelihood_pars <- setdiff1(likelihood_pars, fixed_names)
@@ -496,15 +509,16 @@ simode_create <-
   x0[unknown_x0] <- NA
   x0 <- x0[names(equations)]
 
-  stopifnot(is.list(obs),length(obs)<=length(equations),!is.null(names(obs)))
-  if(length(obs)<length(equations) && is.null(gen_obs) && simode_ctrl$optim_type!='nls')
-    stop(paste0('cannot perform integral-matching optimization - ",
-                "missing observations for variables and no gen_obs method supplied'))
-  if(!pracma::isempty(setdiff(names(obs),names(equations)))) {
-    extra <- paste('[',setdiff(names(obs),names(equations)),']',collapse='')
-    stop(paste0('observations contain variables that do not appear in equations:',
-                extra))
+  stopifnot(is.list(obs),!is.null(names(obs)))
+  if(is.null(gen_obs) && simode_ctrl$optim_type!='nls') {
+    if(!pracma::isempty(setdiff(names(equations),names(obs)))) {
+      missvars <- paste('[',setdiff(names(equations),names(obs)),']',collapse='')
+      stop(paste0('cannot perform integral-matching optimization - ',
+                'missing observations for variables [', missvars,
+                  '] and no gen_obs method supplied'))
+    }
   }
+
   stopifnot(is.numeric(time) || (is.list(time) && length(time)==length(obs)))
   for(i in 1:length(obs)) {
     if(is.numeric(time))
@@ -539,7 +553,7 @@ simode_create <-
   if(!is.null(likelihood_pars)) {
     stopifnot(is.character(likelihood_pars))
     if(is.null(calc_nll)) {
-      stop('likelihood_pars should be empty if calc_nll function is not defined',immediate.=T)
+      stop('likelihood_pars should be empty if calc_nll function is not defined')
     }
     if(!pracma::isempty(setdiff(likelihood_pars,pars))) {
       extra <- paste('[',setdiff(likelihood_pars,pars),']',collapse='')
@@ -549,6 +563,17 @@ simode_create <-
       missing <- paste('[',setdiff(likelihood_pars,names(start)),']',collapse='')
       stop(paste0("start must contain initial values for all parameters ",
                   "in likelihood_pars - missing: ",missing))
+    }
+  }
+
+  if(decouple_equations==T) {
+    if(!is.null(gen_obs)) {
+      stop("Cannot set decouple_equations=T when using gen_obs to generate missing observations")
+    }
+    if(simode_ctrl$optim_type=='nls') {
+      warning(paste0("when running simode with optim_type==\'nls\' ",
+                     "there is no effect for decouple_equations=T"), immediate.=T)
+      decouple_equations <- F
     }
   }
 
@@ -598,6 +623,10 @@ simode_create <-
     upper <- upper_all
   }
 
+  if(!(simode_ctrl$optim_type %in% c("im", "nls", "both"))) {
+    stop("unknown optim_type selected")
+  }
+
   if(!(simode_ctrl$im_optim_method %in%
        c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN",
          "Brent", "Rcgmin", "Rvmmin"))) {
@@ -632,15 +661,19 @@ simode_create <-
   }
 
   if(!(simode_ctrl$im_smoothing %in% c("splines", "kernel", "none"))) {
-    warning("unknown im_smoothing selected - using default \'splines\'",
-            immediate.=T)
-    simode_ctrl$im_smoothing <- "splines"
+    stop(paste0("unknown im_smoothing selected (",simode_ctrl$im_smoothing,")"))
+  }
+  if(simode_ctrl$im_smoothing != "none" &&
+     !pracma::isempty(setdiff(names(obs),names(equations)))) {
+    xvars <- setdiff(names(obs),names(equations))
+    simode_ctrl$im_smoothing[xvars] <- "none"
   }
 
   simode <- list(call=call, equations=equations, pars=pars, x0=x0,
                 time=time, obs=obs, im_method=im_method, nlin_pars=nlin_pars,
                 likelihood_pars=likelihood_pars, fixed=fixed,
                 start=start, lower=lower, upper=upper,
+                decouple_equations=decouple_equations,
                 gen_obs=gen_obs, calc_nll=calc_nll, ctrl=simode_ctrl)
   class(simode) <- "simode"
 
@@ -660,7 +693,8 @@ simode_create <-
 #' of the right-hand side of an equation, and should be named according to
 #' the left-hand side of the equation (i.e., the variable name).
 #' An equation can contain parameters appearing in \code{pars},
-#' variables appearing in the equations names and/or any function of 't',
+#' variables appearing in the equations names, observed non-modeled variables
+#' appearing in \code{obs}, and/or any function of 't',
 #' which is a reserved symbol for the time domain.
 #' @param pars The names of the parameters and initial conditions
 #' to be estimated. An initial condition name for a certain variable
@@ -672,15 +706,15 @@ simode_create <-
 #' if the same time points were used for observing all variables,
 #' or a list of vectors the length of \code{obs}, of which each element
 #' is the length of the relevant element in \code{obs}.
-#' @param obs Named list. The observations. When \code{mc_sets=1}, \code{obs}
-#' should contain a list of vectors with length <= equations (either partial or fully observed
-#' system). Each list member should be named according to the relevant equation name and should
-#' be the length of the relevant time vector. When \code{mc_sets>1}, \code{obs} should contain
-#' a list the length of \code{mc_sets}, where each list member is a list that fits the
-#' description in the case of \code{mc_sets=1}.
-#' @param mc_sets Number of monte-carlo expriments. When \code{mc_sets>1}, the function will
-#' fit each set of observations separately either sequentially or in parallel, according
-#' to the value of \code{parallel} in \code{simode_ctrl}.
+#' @param obs Named list. The observations. When \code{obs_sets=1}, \code{obs}
+#' should contain a list of vectors with observations of either a variable described
+#' by one of the equations (named according to the relevant equation name)
+#' or a non-modeled variable appearing in one of the equations.
+#' Each observations vector should be the length of the relevant time vector.
+#' When \code{obs_sets>1}, \code{obs} should contain a list,
+#' where each list member is a list that fits the description in the case of \code{obs_sets=1}.
+#' @param obs_sets Number of observations sets. When \code{obs_sets>1}, the function will
+#' fit the set of observations according to the value of \code{obs_sets_fit} in \code{simode_ctrl}.
 #' @param nlin_pars Names of parameters or initial conditions
 #' that will be estimated in stage 1 using nonlinear least squares optimization.
 #' The parameter names in \code{nlin_pars} must appear in \code{pars}.
@@ -699,6 +733,8 @@ simode_create <-
 #' means that linear parameters are estimated directly while "non-separable"
 #' means that linear parameters are estimated using nonlinear least squares optimization.
 #' If none of the parameters are linear then the default can be used.
+#' @param decouple_equations Whether to fit each equation separately
+#' in the integral-matching stage.
 #' @param gen_obs A user-defined function for completing missing observations (see Details).
 #' @param calc_nll A user-defined function for calculating negative log-likelihood for
 #' the model (see Details).
@@ -739,12 +775,12 @@ simode_create <-
 #' \item \code{...} additional parameters passed from the call to \code{\link{simode}}
 #' }
 #' The function should return the negative log-likelihood.
-#'
-#' @return If mc_sets=1, returns a \code{simode} object containing the
+#' @return If \code{obs_sets=1}, the function returns a \code{simode} object containing the
 #' parameter estimates after integral-matching (stage 1) and after
-#' nonlinear least squares optimization (stage 2). If \code{mc_sets>1} returns a
-#' \code{list.simode} object which is a list of \code{simode} objects the length of
-#' \code{mc_sets}.
+#' nonlinear least squares optimization (stage 2). If \code{obs_sets>1} and
+#' \code{obs_sets_fit!="together"} in \code{simode_ctrl}, the function
+#' returns a \code{list.simode} object which is a list of \code{simode} objects
+#' the length of \code{obs_sets}.
 #' @references
 #' Dattner & Klaassen (2015). Optimal Rate of Direct Estimators in Systems of Ordinary Differential Equations Linear in Functions of the Parameters,
 #' Electronic Journal of Statistics, Vol. 9, No. 2, 1939-1973.
@@ -804,10 +840,10 @@ simode_create <-
 #' @importFrom stats D smooth.spline predict
 #' @export
 #'
-simode <- function(equations, pars, time, obs, mc_sets=1,
+simode <- function(equations, pars, time, obs, obs_sets=1,
                   nlin_pars=NULL, likelihood_pars=NULL,
                   fixed=NULL, start=NULL, lower=NULL, upper=NULL,
-                  im_method=c("separable","non-separable"),
+                  im_method=c("separable","non-separable"), decouple_equations=F,
                   gen_obs=NULL, calc_nll=NULL, simode_ctrl=simode.control(), ...) {
 
   if(is.list(equations)){
@@ -821,20 +857,21 @@ simode <- function(equations, pars, time, obs, mc_sets=1,
   if(is.null(simode_ctrl$job_id))
     on.exit(expr=simode_cleanup(simode_ctrl$save_to_log))
 
-  stopifnot(mc_sets>0)
-  if(mc_sets > 1) {
-    stopifnot(mc_sets==length(obs))
+  if(obs_sets > 1) {
+    stopifnot(obs_sets==length(obs))
     return (simode_multi(equations=equations, pars=pars,  time=time, obs=obs,
-                        mc_sets=mc_sets, nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
-                        fixed=fixed, start=start, lower=lower, upper=upper, im_method=im_method,
-                        gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
+                         nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
+                         fixed=fixed, start=start, lower=lower, upper=upper, im_method=im_method,
+                         decouple_equations=decouple_equations, gen_obs=gen_obs,
+                         calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
   }
 
   simode_obj <- simode_create(
               match.call(), equations, pars, time, obs,
               nlin_pars, likelihood_pars,
               fixed, start, lower, upper,
-              im_method, gen_obs, calc_nll, simode_ctrl)
+              im_method, decouple_equations,
+              gen_obs, calc_nll, simode_ctrl)
 
   simode_obj$extra_args <- list(...)
 
@@ -844,7 +881,105 @@ simode <- function(equations, pars, time, obs, mc_sets=1,
     cat(noquote(paste0("Call to simode on [", Sys.time(), "]:\n")))
   }
 
+  if(decouple_equations) {
+    return (simode_decouple(simode_obj))
+  }
+
   return (simode_impl(simode_obj))
+}
+
+simode_decouple <- function(x) {
+
+  vars <- names(x$obs)
+  eq_names <- names(x$equations)
+  pars <- setdiff(x$pars,x$likelihood_pars)
+  p <- length(pars)
+
+  eq_names1 <- strsplit(eq_names,split=x$ctrl$decouple_sep)
+  eq_prefix <- unique(unlist(lapply(1:length(eq_names1),function(j) {
+    if(length(eq_names1[[j]]) <= 1)
+      return (eq_names1[[j]])
+    return (paste0(eq_names1[[j]][1:(length(eq_names1[[j]])-1)],x$ctrl$decouple_sep))
+  })))
+  d <- length(eq_prefix)
+
+  im_pars_est_mat <- matrix(NA,d,p)
+  colnames(im_pars_est_mat) <- pars
+  rownames(im_pars_est_mat) <- eq_prefix
+  im_loss_vec <- rep(0,d)
+  for(i in 1:d) {
+    eq_names0 <- setdiff(eq_names[startsWith(eq_names,eq_prefix[i])],eq_prefix[-i])
+    eq <- x$equations[eq_names0]
+    vars0 <- setdiff(vars,eq_names0)
+    pars0 <- setdiff(pars,vars0)
+    pars_found <- apply(as.matrix(pars0),1,function(par) grep(paste0('\\<',par,'\\>'),eq))
+    if(is.list(pars_found))
+      pars1 <- pars0[unlist(lapply(1:length(pars_found), function(j) length(pars_found[[j]])))>0]
+    else
+      pars1 <- pars0[!is.na(pars_found)]
+    if(!pracma::isempty(pars1)) {
+      vars_found <- apply(as.matrix(vars0),1,function(var) grep(paste0('\\<',var,'\\>'),eq))
+      if(is.list(vars_found))
+        vars1 <- vars0[unlist(lapply(1:length(vars_found), function(j) length(vars_found[[j]])))>0]
+      else
+        vars1 <- vars0[!is.na(vars_found)]
+      vars1 <- unique(c(eq_names0,vars1))
+      x0 <- x$x0[eq_names0]
+      obs <- x$obs[vars1]
+      time <- x$time
+      if(is.list(time)) {
+        names(time) <- names(x$obs)
+        time <- x$time[vars1]
+      }
+      nlin_pars <- x$nlin_pars[x$nlin_pars %in% pars1]
+      start <- x$start[names(x$start) %in% pars1]
+      lower <- x$lower[names(x$lower) %in% pars1]
+      upper <- x$upper[names(x$upper) %in% pars1]
+      ctrl <- x$ctrl
+      ctrl$optim_type <- 'im'
+
+      simode_obj <- list(call=x$call, equations=eq, pars=pars1, x0=x0,
+                         time=time, obs=obs, im_method=x$im_method, nlin_pars=nlin_pars,
+                         likelihood_pars=x$likelihood_pars, fixed=x$fixed,
+                         start=start, lower=lower, upper=upper,
+                         gen_obs=x$gen_obs, calc_nll=x$calc_nll,
+                         ctrl=ctrl,extra_args=x$extra_args)
+      class(simode_obj) <- "simode"
+      if(x$ctrl$trace > 0) {
+        msg <- paste0("Handling variable [",
+                      strsplit(eq_prefix[i],x$ctrl$decouple_sep)[[1]], "]:\n")
+        cat(noquote(msg))
+      }
+      im_fit <- simode_impl(simode_obj)
+      if(is.null(im_fit))
+        return (NULL)
+      im_pars_est_mat[i,pars1] <- im_fit$im_pars_est[pars1]
+      im_loss_vec[i] <- im_fit$im_loss
+      if(is.null(x$im_smooth)) {
+        x$im_smooth$time <- im_fit$im_smooth$time
+        x$im_smooth$val <- matrix(0,nrow(im_fit$im_smooth$val),length(eq_names))
+        colnames(x$im_smooth$val) <- eq_names
+      }
+      x$im_smooth$val[,eq_names0] <- im_fit$im_smooth$val[,eq_names0]
+      #take im_trace
+    }
+  }
+  x$im_pars_est_mat <- im_pars_est_mat
+  x$im_pars_est <- colMeans(im_pars_est_mat,na.rm=T)
+  x$im_pars_est[x$likelihood_pars] <- NA
+  x$im_loss <- sum(im_loss_vec)
+  if(x$ctrl$optim_type!='im') {
+    ctrl <- x$ctrl
+    x$ctrl$optim_type <- 'nls'
+    start <- x$start
+    x$start <- c(x$im_pars_est[pars],x$start[x$likelihood_pars])
+    x <- simode_impl(x)
+    if(!is.null(x)) {
+      x$ctrl <- ctrl
+      x$start <- start
+    }
+  }
+  return (x)
 }
 
 simode_impl <- function(x) {
@@ -867,6 +1002,7 @@ simode_impl <- function(x) {
   return (simode_obj)
 }
 
+
 simode_cleanup <- function(save_to_log)
 {
   old.options <- options(warn=-1)
@@ -882,7 +1018,6 @@ simode_cleanup <- function(save_to_log)
   }
   options(old.options)
 }
-
 
 #' Plot the fit/estimates of a \code{simode} object
 #'
@@ -922,8 +1057,8 @@ plot.simode <- function(x, type=c('fit','est'), show=c('nls','im','both'),
   x_list <- list(x)
   class(x_list) <- 'list.simode'
   plot(x_list,type=type,show=show,which=which,pars_true=pars_true,
-       time=time,plot_im_smooth=plot_im_smooth,legend=legend,
-       mfrow=mfrow,cols=cols,...)
+       time=time,plot_im_smooth=plot_im_smooth,
+       legend=legend,mfrow=mfrow,cols=cols,...)
 }
 
 #' Plot optimization trace of a call to \code{simode}
@@ -1049,8 +1184,10 @@ summary.simode <- function(object, digits=max(3, getOption("digits")-3), ...) {
   summary$x0 <- object$x0
 
   summary$im_method <- object$im_method
-  summary$im_loss <- signif(object$im_loss,digits)
-  summary$nls_loss <- signif(object$nls_loss,digits)
+  if(!is.null(object$im_loss))
+    summary$im_loss <- signif(object$im_loss,digits)
+  if(!is.null(object$nls_loss))
+    summary$nls_loss <- signif(object$nls_loss,digits)
 
   df <- data.frame(par=object$pars)
   df$type <- rep('linear',length(object$pars))
