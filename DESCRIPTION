@@ -1,7 +1,7 @@
 Package: simode
 Type: Package
 Title: Statistical Inference for Systems of Ordinary Differential Equations using Separable Integral-Matching
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
     person("Itai", "Dattner", email = "idattner@stat.haifa.ac.il", role = "aut"),
     person("Rami", "Yaari", email = "ramiyaari@gmail.com", role = c("aut", "cre")))
@@ -12,12 +12,16 @@ Description: Implements statistical inference for systems of ordinary differenti
   Dattner et al. (2017) <doi:10.1098/rsif.2016.0525>.
   Dattner & Klaassen (2015) <doi:10.1214/15-EJS1053>.
 Depends: R (>= 3.4.0)
-Imports: deSolve, pracma, quadprog
+Imports: 
+    deSolve, 
+    pracma, 
+    quadprog
 Suggests: 
     parallel,
     Rcgmin,
     Rvmmin,
-    R.rsp
+    R.rsp,
+    knitr
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

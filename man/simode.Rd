@@ -9,7 +9,7 @@ simode(equations, pars, time, obs, obs_sets = 1, nlin_pars = NULL,
   likelihood_pars = NULL, fixed = NULL, start = NULL, lower = NULL,
   upper = NULL, im_method = c("separable", "non-separable"),
   decouple_equations = F, gen_obs = NULL, calc_nll = NULL,
-  simode_ctrl = simode.control(), ...)
+  scale_pars = NULL, simode_ctrl = simode.control(), ...)
 }
 \arguments{
 \item{equations}{Named vector. The equations describing the ODE system.
@@ -72,10 +72,13 @@ If none of the parameters are linear then the default can be used.}
 \item{decouple_equations}{Whether to fit each equation separately
 in the integral-matching stage.}
 
-\item{gen_obs}{A user-defined function for completing missing observations (see Details).}
+\item{gen_obs}{An optional user-defined function for completing missing observations (see Details).}
 
-\item{calc_nll}{A user-defined function for calculating negative log-likelihood for
+\item{calc_nll}{An optional user-defined function for calculating negative log-likelihood for
 the model (see Details).}
+
+\item{scale_pars}{An optional user-defined function for scaling transformations of parameters
+estimated using non-linear optimization (see Details).}
 
 \item{simode_ctrl}{Various control parameters. See \code{\link{simode.control}}.}
 
@@ -131,6 +134,19 @@ then \code{model_out} will contain a union of all these times.
 \item \code{...} additional parameters passed from the call to \code{\link{simode}}
 }
 The function should return the negative log-likelihood.
+
+\code{scale_pars} allows the user to pass a function for rescaling transformations
+of some/all of the parameters estimated using non-linear optimization. The function
+will be called at each step of the optimization with the current values of the parameters,
+as the optimization algorithm sees them, and will return rescaled parameters values to be used
+in estimation of the direct parameters (stage 1) and in solving the ODE equations (stage 2).
+It must be defined as
+\code{scale_pars <- function(pars, ...)}, where:
+\itemize{
+\item \code{pars} the parameter values
+\item \code{...} additional parameters passed from the call to \code{\link{simode}}
+}
+The function should return the rescaled parameter values.
 }
 \examples{
 

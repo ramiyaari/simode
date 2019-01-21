@@ -109,7 +109,9 @@ profile.simode <- function(
                                           max_steps, max_delta, skip_err, trace)
     }
   },
-  warning=function(w) {},
+  warning=function(w) {
+    print(w)
+  },
   error=function(e) {
     print(e)
     res <- NULL
@@ -208,7 +210,10 @@ calc_profile <- function(x, par, optim_type, step_size, max_steps,
     if(profile_l_done && profile_r_done)
       break
     if(i >= max_steps) {
-      warning('In call to profile - max_steps has been reached')
+      if(trace > 0) {
+        cat(noquote((paste0("Calculating profile for parameter [", par,
+                            "] - max step has been reached\n"))))
+      }
       break
     }
   }
@@ -309,10 +314,10 @@ print.profile.simode <- function(x, ...) {
 #'
 confint.profile.simode<- function(object, parm=NULL, level=0.95, ...) {
 
-  stopifnot(is.null(parm) || is.numeric(parm))
+  stopifnot(is.null(parm) || (is.character(parm) && is.vector(parm)))
   pars <- parm
   if(is.null(pars))
-    pars <- object$pars
+    pars <- c(object$pars)
   if(!pracma::isempty(setdiff(pars,object$pars))) {
     extra <- paste('[',setdiff(pars,object$pars),']',collapse='')
     stop(paste0("\'parm\' contain parameters that do not appear in object$pars: ",

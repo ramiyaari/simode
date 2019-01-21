@@ -23,7 +23,7 @@ integral-matching ('im'), only nonlinear least squares ('nls') or both
 
 \item{im_optim_method}{Method for optimization during the integral-matching stage.
 Accepted values are any method supported by the \code{method} argument in \code{\link{optim}},
-as well as “Rvmmin” and “Rcgmin”, if the relevant packages are installed.}
+as well as \'Rvmmin\' and \'Rcgmin\', if the relevant packages are installed.}
 
 \item{nls_optim_method}{Method for optimization during the nonlinear least squares stage.
 Accepted values are the same as in \code{im_optim_method}.}
@@ -80,10 +80,10 @@ If true, output will be saved to the file 'simode.log' in tempdir.}
 Class containing control parameters for a call to \code{simode}
 }
 \details{
-Possible values for \code{im_smoothing} are “splines” (the default),
+Possible values for \code{im_smoothing} are \'splines\' (the default),
 in which case smoothing will be performed using \code{\link[stats]{smooth.spline}}
-with generalized cross-validation, “kernel”, using own kernel smoother function,
-or “none” (using the observations as is, with interpolation if necessary).
+with generalized cross-validation, \'kernel\', using own kernel smoother function,
+or \'none\' (using the observations as is, with interpolation if necessary).
 \code{use_pars2vars_mapping} controls whether to use a mapping of which equations
 are affected by each of the parameters. When set to true, previous matrices computed as part of
 the integral-matching estimation are stored during the integral-matching optimization,
@@ -92,7 +92,7 @@ parameter estimates from the previous iteration.
 When the number of equations is large and some of the parameters affect only a few equations,
 setting this option to true can significantly reduce the optimization time during
 the integral-matching stage (while increasing the storage usage).
-This is especially true with derivative based optimization methods (such as “BFGS” of optim)
+This is especially true with derivative based optimization methods (such as \'BFGS\' of optim)
 which updates only one of the optimized parameters in each iteration.
 \code{trace} has 5 possible levels:\cr
 With trace=0, there would be no output displayed if there are no errors.\cr

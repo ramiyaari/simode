@@ -62,13 +62,13 @@ simode_fit <- function(equations, pars, time, obs,
     pars_min <- NULL
   if(all(is.infinite(pars_max)))
     pars_max <- NULL
-
   if(!is.null(pars_min))  {
     pars_min[which(is.infinite(pars_min))] <- -1e100
   }
   if(!is.null(pars_max)) {
     pars_max[which(is.infinite(pars_max))] <- 1e100
   }
+
 
   if (is.null(x0) || any(is.na(x0))) {
     x0_min <- pars_min[intersect(names(x0),names(pars_min))]
@@ -217,7 +217,7 @@ simode_fit <- function(equations, pars, time, obs,
   }
 
   # -----------------------------------------------------------------------------
-  # calculate theta -------------------------------------------------------------
+  # calculate x0 ----------------------------------------------------------------
 
   if (is.null(x0) || any(is.na(x0))) {
     int1 <- apply(Q, 2, function(u) {trapz(u)*dt})
@@ -247,7 +247,8 @@ simode_fit <- function(equations, pars, time, obs,
     #  theta <- solve(B)%*%(int2 - t(A)%*%x0)
   }
 
-  #if(is.null(theta)) {
+  # -----------------------------------------------------------------------------
+  # calculate theta -------------------------------------------------------------
 
   G_mat <- matrix(0, nrow = (N * d), ncol = p)
   for(i in 1:d) {
@@ -263,16 +264,12 @@ simode_fit <- function(equations, pars, time, obs,
   warning = function(w) { if(trace>2) print(w) },
   error = function(e)   { if(trace>1) print(e) }
   )
-  #}
 
   if(is.null(theta)) {
       return (NULL)
   }
 
   names(theta) <- pars
-  # theta[names(pars_min)] <- pmax(theta[names(pars_min)],pars_min)
-  # theta[names(pars_max)] <- pmin(theta[names(pars_max)],pars_max)
-
   im_fit <- list(theta=theta, x0=x0, vars=vars, pars=pars, N=N,
                  t=t, im_smooth=im_smooth, Z=Z, G=G, A=A, B=B)
 

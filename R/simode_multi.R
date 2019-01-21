@@ -15,7 +15,7 @@ simode_multi_worker <- function(...) {
             nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
             fixed=fixed, start=start, lower=lower, upper=upper,
             im_method=im_method, decouple_equations=decouple_equations,
-            gen_obs=gen_obs, calc_nll=calc_nll,
+            gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
             simode_ctrl=simode_ctrl), extra_args)
       do.call("simode", args)
     })
@@ -29,33 +29,38 @@ simode_multi <- function(equations, pars, time, obs,
                         nlin_pars, likelihood_pars,
                         fixed, start, lower, upper,
                         im_method, decouple_equations,
-                        gen_obs, calc_nll, simode_ctrl, ...) {
+                        gen_obs, calc_nll, scale_pars, simode_ctrl, ...) {
 
   if(simode_ctrl$obs_sets_fit == 'together')
     return (simode_multi_together(equations=equations, pars=pars,  time=time, obs=obs,
                          nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
                          fixed=fixed, start=start, lower=lower, upper=upper,
                          im_method=im_method, decouple_equations=decouple_equations,
-                         gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
+                         gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+                         simode_ctrl=simode_ctrl, ...))
 
   else if(simode_ctrl$obs_sets_fit == 'separate_x0')
     return (simode_multi_separate_x0(equations=equations, pars=pars,  time=time, obs=obs,
                                   nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
                                   fixed=fixed, start=start, lower=lower, upper=upper,
                                   im_method=im_method, decouple_equations=decouple_equations,
-                                  gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
+                                  gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+                                  simode_ctrl=simode_ctrl, ...))
 
   return (simode_multi_separate(equations=equations, pars=pars,  time=time, obs=obs,
                                 nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
                                 fixed=fixed, start=start, lower=lower, upper=upper,
                                 im_method=im_method, decouple_equations=decouple_equations,
-                                gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
+                                gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+                                simode_ctrl=simode_ctrl, ...))
 }
 
 simode_multi_together <- function(equations, pars, time, obs,
                          nlin_pars, likelihood_pars,
                          fixed, start, lower, upper,
-                         im_method, decouple_equations, gen_obs, calc_nll, simode_ctrl, ...) {
+                         im_method, decouple_equations,
+                         gen_obs, calc_nll, scale_pars,
+                         simode_ctrl, ...) {
   obs_mean <- list()
   obs_sets <- length(obs)
   for(i in 1:length(obs[[1]])) {
@@ -70,14 +75,15 @@ simode_multi_together <- function(equations, pars, time, obs,
            nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
            fixed=fixed, start=start, lower=lower, upper=upper,
            im_method=im_method, decouple_equations=decouple_equations,
-           gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...))
+           gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+           simode_ctrl=simode_ctrl, ...))
 }
 
 simode_multi_separate_x0 <- function(equations, pars, time, obs,
                                   nlin_pars, likelihood_pars,
                                   fixed, start, lower, upper,
                                   im_method, decouple_equations,
-                                  gen_obs, calc_nll, simode_ctrl, ...) {
+                                  gen_obs, calc_nll, scale_pars, simode_ctrl, ...) {
   sep <- simode_ctrl$decouple_sep
   eq_names <- names(equations)
   vars <- names(obs[[1]])
@@ -147,7 +153,8 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
               nlin_pars=nlin_pars_m, likelihood_pars=likelihood_pars,
               fixed=fixed_m, start=start_m, lower=lower_m, upper=upper_m,
               im_method=im_method, decouple_equations=decouple_equations,
-              gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...)
+              gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+              simode_ctrl=simode_ctrl, ...)
 
   if(is.null(x))
     return (NULL)
@@ -186,7 +193,7 @@ simode_multi_separate <- function(equations, pars, time, obs,
                          nlin_pars, likelihood_pars,
                          fixed, start, lower, upper,
                          im_method, decouple_equations,
-                         gen_obs, calc_nll, simode_ctrl, ...) {
+                         gen_obs, calc_nll, scale_pars, simode_ctrl, ...) {
 
   if(simode_ctrl$parallel==T && !requireNamespace("parallel", quietly=T)) {
     warning("parallel package not installed - running sequentially",
@@ -217,7 +224,8 @@ simode_multi_separate <- function(equations, pars, time, obs,
                     nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
                     fixed=fixed, start=start, lower=lower, upper=upper,
                     im_method=im_method, decouple_equations=decouple_equations,
-                    gen_obs=gen_obs, calc_nll=calc_nll, simode_ctrl=simode_ctrl, ...)
+                    gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
+                    simode_ctrl=simode_ctrl, ...)
         }
       }
       else {
@@ -228,7 +236,7 @@ simode_multi_separate <- function(equations, pars, time, obs,
           nlin_pars=nlin_pars, likelihood_pars=likelihood_pars,
           fixed=fixed, start=start, lower=lower, upper=upper,
           im_method=im_method, decouple_equations=decouple_equations,
-          gen_obs=gen_obs, calc_nll=calc_nll,
+          gen_obs=gen_obs, calc_nll=calc_nll, scale_pars=scale_pars,
           simode_ctrl=simode_ctrl, extra_args=extra_args)
       }
     },
@@ -628,7 +636,7 @@ plot_list_simode_fit <-
 
   vars <- which
   if(is.null(vars))
-    vars <- names(x[[1]]$equations)
+    vars <- names(x[[1]]$obs)
 
   if(length(x)==1)
     plot_mean_sd <- F
@@ -680,10 +688,15 @@ plot_list_simode_fit <-
   model_nls_est <- list()
   if(plot_nls_fit) {
     for(i in 1:length(x)) {
-      if(!is.null(x[[i]]$nls_pars_est)) {
+      pars_est <- x[[i]]$nls_pars_est
+      if(!is.null(x[[i]]$scale_pars)) {
+        args <- c(list(pars=pars_est), x[[i]]$extra_args)
+        pars_est <- do.call(x[[i]]$scale_pars, args)
+      }
+      if(!is.null(pars_est)) {
         x0_nls <- x[[i]]$x0
-        x0_nls[x0.na] <- x[[i]]$nls_pars_est[x0.na]
-        pars_est_nls <- x[[i]]$nls_pars_est[setdiff(names(x[[i]]$nls_pars_est),x0.na)]
+        x0_nls[x0.na] <- pars_est[x0.na]
+        pars_est_nls <- pars_est[setdiff(names(pars_est),x0.na)]
         model_nls_est[[i]] <- solve_ode(x[[i]]$equations, pars_est_nls, x0_nls, time, x[[1]]$obs[xvars])
         if(is.null(model_nls_est[[i]])) {
           fn <- ifelse(!is.null(fit_num),fit_num,i)
@@ -716,10 +729,15 @@ plot_list_simode_fit <-
   model_im_est <- list()
   if(plot_im_fit) {
     for(i in 1:length(x)) {
-      if(!is.null(x[[i]]$im_pars_est)) {
+      pars_est <- x[[i]]$im_pars_est
+      if(!is.null(x[[i]]$scale_pars)) {
+        args <- c(list(pars=pars_est), x[[i]]$extra_args)
+        pars_est <- do.call(x[[i]]$scale_pars, args)
+      }
+      if(!is.null(pars_est)) {
         x0_im <- x[[i]]$x0
-        x0_im[x0.na] <- x[[i]]$im_pars_est[x0.na]
-        pars_est_im <- x[[i]]$im_pars_est[setdiff(names(x[[i]]$im_pars_est),x0.na)]
+        x0_im[x0.na] <- pars_est[x0.na]
+        pars_est_im <- pars_est[setdiff(names(pars_est),x0.na)]
         model_im_est[[i]] <- solve_ode(x[[i]]$equations, pars_est_im, x0_im, time, x[[1]]$obs[xvars])
         if(is.null(model_im_est[[i]])) {
           fn <- ifelse(!is.null(fit_num),fit_num,i)

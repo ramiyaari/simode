@@ -24,6 +24,7 @@ names(equations) <- vars
 equations
 
 a <- matrix(c(1,1.09,1.52,0,0,1,0.44,1.36,2.33,0,1,0.47,1.21,0.51,0.35,1),4,4,byrow=T)
+
 b <- c(1,0.72,1.53,1.27)
 theta <- c(a,b)
 names(theta) <- c(a_names,b_names)
@@ -32,35 +33,15 @@ names(x0) <- vars
 
 ## generate observations --------------------------------------------
 
+library("simode")
 n <- 100
 time <- seq(1,100,length=n)
 model_out <- solve_ode(equations,theta,x0,time)
 x_det <- model_out[,vars]
 
-set.seed(1234)
-sigma <- 0.01
-obs <- list()
-for(i in 1:M) {
-  obs[[i]] <- rnorm(n,x_det[,i],sigma)
-}
-names(obs) <- vars
-
-# for(i in 1:M) {
-#   plot(time,x_det[,i],type='l',ylab=vars[i])
-#   points(time,obs[[i]],col='red')
-# }
-
-###########################################################################
-
-pars_min <- rep(0,length(c(pars,vars)))
-names(pars_min) <- c(pars,vars)
-pars_max <- rep(1,M)
-names(pars_max) <- vars
-
-b_init <- rep(1,M)
-names(b_init) <- b_names
 
 set.seed(1000)
+sigma <- 0.01
 obs <- c()
 N <- 5
 x0_vals <- matrix(NA,N,M)
@@ -80,6 +61,14 @@ for(j in 1:N) {
   obs[[j]] <- obs1
 }
 
+pars_min <- rep(0,length(c(pars,vars)))
+names(pars_min) <- c(pars,vars)
+pars_max <- rep(1,M)
+names(pars_max) <- vars
+
+b_init <- rep(1,M)
+names(b_init) <- b_names
+
 est_clv_m <- simode(
   equations=equations, pars=c(vars,pars),
   nlin_pars=b_names, start=b_init,
@@ -96,7 +85,8 @@ signif(summary(est_clv_m)$im_est[,a_names],2)
 theta[b_names]
 signif(summary(est_clv_m)$im_est[,b_names],2)
 
-# plot(est_clv_m,type='fit',show='im',mfrow=c(2,2))
+plot(est_clv_m[[1]],type='fit',show='im',legend=T)
+
 plot(est_clv_m[[1]],type='est',show='im',which=a_names,pars_true=theta[a_names],legend=T)
 plot(est_clv_m[[1]],type='est',show='im',which=b_names,pars_true=theta[b_names],legend=T)
 for(i in 1:N) {
