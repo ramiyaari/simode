@@ -6,8 +6,8 @@
 \usage{
 simode.control(optim_type = c("both", "im", "nls"),
   im_optim_method = c("BFGS", "Nelder-Mead", "CG", "L-BFGS-B", "SANN",
-  "Brent", "Rcgmin", "Rvmmin"), nls_optim_method = c("BFGS", "Nelder-Mead",
-  "CG", "L-BFGS-B", "SANN", "Brent", "Rcgmin", "Rvmmin"),
+  "Brent", "Rcgmin", "Rvmmin"), nls_optim_method = c("BFGS",
+  "Nelder-Mead", "CG", "L-BFGS-B", "SANN", "Brent", "Rcgmin", "Rvmmin"),
   im_optim_control = list(), nls_optim_control = list(),
   ode_control = list(method = "lsoda"), im_smoothing = c("splines",
   "kernel", "none"), im_grid_size = 0, bw_factor = 1.5,

@@ -7,8 +7,8 @@
 \method{plot}{simode}(x, type = c("fit", "est"), show = c("nls", "im",
   "both"), which = NULL, pars_true = NULL, time = NULL,
   plot_im_smooth = F, legend = F, mfrow = par("mfrow"),
-  cols = list(nls_fit = "blue", im_fit = "green", true = "black", obs = "red",
-  im_smooth = "magenta"), ...)
+  cols = list(nls_fit = "blue", im_fit = "green", true = "black", obs =
+  "red", im_smooth = "magenta"), ...)
 }
 \arguments{
 \item{x}{\code{simode} object returned by a call to \code{\link{simode}}.}

@@ -280,6 +280,49 @@ solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
   return (out)
 }
 
+#' Ordinary differential equations solver using a \code{simode} object
+#'
+#' A wrapper for the \link[deSolve]{ode} function that solves a system of
+#' ordinary differential equations described using symbolic equations.
+#' @param x A simode object returned from a call to \code{\link{simode}}.
+#' @param type Which solution to generate ('both'\\'nls'\\'im').
+#' @return A matrix whose first column contains the given time points
+#' and subsequent columns hold the computed ODE equations' values at these time points.
+#' @export
+#'
+solve_ode2 <- function(x,type=c("both","im","nls")) {
+  type <- match.arg(type)
+  x0.na <- names(x$x0[is.na(x$x0)])
+  xvars <- setdiff(names(x$obs),names(x$equations))
+  solution <- list()
+  nls_pars_est <- x$nls_pars_est
+  if(type!='im' && !is.null(nls_pars_est)) {
+    if(!is.null(x$scale_pars)) {
+      args <- c(list(pars=nls_pars_est), x$extra_args)
+      nls_pars_est <- do.call(x$scale_pars, args)
+    }
+    x0 <- x$x0
+    x0[x0.na] <- nls_pars_est[x0.na]
+    nls_pars_est <- nls_pars_est[setdiff(names(nls_pars_est),x0.na)]
+    nls_solution <- solve_ode(x$equations, nls_pars_est, x0, x$time, x$obs[xvars])
+    solution$nls <- nls_solution
+  }
+  im_pars_est <- x$im_pars_est
+  if(type!='nls' && !is.null(im_pars_est)) {
+    if(!is.null(x$scale_pars)) {
+      args <- c(list(pars=im_pars_est), x$extra_args)
+      im_pars_est <- do.call(x$scale_pars, args)
+    }
+    x0 <- x$x0
+    x0[x0.na] <- im_pars_est[x0.na]
+    im_pars_est <- im_pars_est[setdiff(names(im_pars_est),x0.na)]
+    im_solution <- solve_ode(x$equations, im_pars_est, x0, x$time, x$obs[xvars])
+    solution$im <- im_solution
+  }
+  return (solution)
+}
+
+
 step_ode_model <- function(t, states, pars, equations, xvars, times2)
 {
   with(as.list(c(states,xvars)), {

@@ -4,8 +4,8 @@
 \alias{summary.simode}
 \title{Summary method for \code{simode} objects}
 \usage{
-\method{summary}{simode}(object, digits = max(3, getOption("digits") - 3),
-  ...)
+\method{summary}{simode}(object, digits = max(3, getOption("digits") -
+  3), ...)
 }
 \arguments{
 \item{object}{The \code{simode} object.}

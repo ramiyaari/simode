@@ -4,8 +4,8 @@
 \alias{summary.list.simode}
 \title{Summary method for \code{list.simode} objects}
 \usage{
-\method{summary}{list.simode}(object, sum_mean_sd = F, pars_true = NULL,
-  digits = max(3, getOption("digits") - 3), ...)
+\method{summary}{list.simode}(object, sum_mean_sd = F,
+  pars_true = NULL, digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{object}{\code{list.simode} object returned by a call to \code{\link{simode}}

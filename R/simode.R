@@ -800,7 +800,7 @@ simode_create <-
 #' }
 #' The function should return the rescaled parameter values.
 #' @return If \code{obs_sets=1}, the function returns a \code{simode} object containing the
-#' parameter estimates after integral-matching (stage 1) and after
+#' parameter estimates and solutions after integral-matching (stage 1) and after
 #' nonlinear least squares optimization (stage 2). If \code{obs_sets>1} and
 #' \code{obs_sets_fit!="together"} in \code{simode_ctrl}, the function
 #' returns a \code{list.simode} object which is a list of \code{simode} objects
@@ -1019,6 +1019,12 @@ simode_impl <- function(x) {
         simode_obj <- do.call("simode_linear", args)
       else
         simode_obj <- do.call("simode_nonlinear", args)
+
+      if(!is.null(simode_obj)) {
+        sol <- solve_ode2(simode_obj)
+        simode_obj$im_sol <- sol$im[,-1]
+        simode_obj$nls_sol <- sol$nls[,-1]
+      }
     },
     error = function(e) { print(e) },
     finally = {

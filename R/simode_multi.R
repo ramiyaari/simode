@@ -627,16 +627,29 @@ plot_list_simode_fit <-
            plot_mean_sd=F, plot_im_smooth=F, legend=F, mfrow=par('mfrow'),
            cols=list(nls_fit="blue",im_fit="green", true="black",
                      obs="red", im_smooth="magenta"),
-           fit_num=NULL, ...) {
+           fit_num=NULL, main=NULL,...) {
 
 
   show <- match.arg(show)
   plot_nls_fit <- (show=='nls' || show=='both')
   plot_im_fit <- (show=='im' || show=='both')
 
+  x0.na <- names(x[[1]]$x0[is.na(x[[1]]$x0)])
+  xvars <- setdiff(names(x[[1]]$obs),names(x[[1]]$equations))
+
   vars <- which
   if(is.null(vars))
-    vars <- names(x[[1]]$obs)
+    vars <- setdiff(names(x[[1]]$obs),xvars)
+
+  if(!is.null(main)) {
+    if(length(main)==1) {
+      main <- rep(main,length(vars))
+    }
+    else {
+      stopifnot(length(main)==length(vars))
+    }
+    names(main) <- vars
+  }
 
   if(length(x)==1)
     plot_mean_sd <- F
@@ -649,14 +662,14 @@ plot_list_simode_fit <-
   if(!is.list(x[[1]]$time)) {
     if(is.null(time))
       time <- x[[1]]$time
-    time_obs <- rep(list(x[[1]]$time),length(x[[1]]$obs))
-    names(time_obs) <- names(x[[1]]$obs)
+    time_obs <- rep(list(x[[1]]$time),length(x[[1]]$obs[vars]))
   }
   else {
     if(is.null(time))
       time <- sort(unique(unlist(x[[1]]$time)))
-    time_obs <- x[[1]]$time
+    time_obs <- x[[1]]$time[which(names(x[[1]]$obs)==vars)]
   }
+  names(time_obs) <- vars
 
   y_min <- unlist(lapply(vars, function(i) min(x[[1]]$obs[[i]])))
   y_max <- unlist(lapply(vars, function(i) max(x[[1]]$obs[[i]])))
@@ -666,15 +679,12 @@ plot_list_simode_fit <-
   legend_text <- c('obs')
   legend_cols <- cols[['obs']]
 
-  x0.na <- names(x[[1]]$x0[is.na(x[[1]]$x0)])
-  xvars = setdiff(names(x[[1]]$obs),names(x[[1]]$equations))
-
   if(!is.null(pars_true)) {
     x0_true <- x[[1]]$x0
     x0_true[x0.na] <- pars_true[x0.na]
     pars_true <- pars_true[setdiff(names(pars_true),x0.na)]
     model_true <- solve_ode(x[[1]]$equations, pars_true, x0_true, time, x[[1]]$obs[xvars])
-    if(is.null(model_true[[1]])) {
+    if(is.null(model_true)) {
       stop('Error running model with pars_true values')
     }
     legend_text <- c(legend_text, 'true')
@@ -688,20 +698,12 @@ plot_list_simode_fit <-
   model_nls_est <- list()
   if(plot_nls_fit) {
     for(i in 1:length(x)) {
-      pars_est <- x[[i]]$nls_pars_est
-      if(!is.null(x[[i]]$scale_pars)) {
-        args <- c(list(pars=pars_est), x[[i]]$extra_args)
-        pars_est <- do.call(x[[i]]$scale_pars, args)
-      }
-      if(!is.null(pars_est)) {
-        x0_nls <- x[[i]]$x0
-        x0_nls[x0.na] <- pars_est[x0.na]
-        pars_est_nls <- pars_est[setdiff(names(pars_est),x0.na)]
-        model_nls_est[[i]] <- solve_ode(x[[i]]$equations, pars_est_nls, x0_nls, time, x[[1]]$obs[xvars])
-        if(is.null(model_nls_est[[i]])) {
-          fn <- ifelse(!is.null(fit_num),fit_num,i)
-          stop(paste0('Error running model with nls estimates of fit #',fn))
-        }
+      simode_obj <- x[[i]]
+      simode_obj$time <- time
+      model_nls_est[[i]] <- solve_ode2(simode_obj,'nls')$nls
+      if(is.null(model_nls_est[[i]])) {
+        fn <- ifelse(!is.null(fit_num),fit_num,i)
+        stop(paste0('Error running model with nls estimates of fit #',fn))
       }
     }
     model_nls_est_mean <- matrix(0,nrow=length(time), ncol=length(vars))
@@ -729,20 +731,12 @@ plot_list_simode_fit <-
   model_im_est <- list()
   if(plot_im_fit) {
     for(i in 1:length(x)) {
-      pars_est <- x[[i]]$im_pars_est
-      if(!is.null(x[[i]]$scale_pars)) {
-        args <- c(list(pars=pars_est), x[[i]]$extra_args)
-        pars_est <- do.call(x[[i]]$scale_pars, args)
-      }
-      if(!is.null(pars_est)) {
-        x0_im <- x[[i]]$x0
-        x0_im[x0.na] <- pars_est[x0.na]
-        pars_est_im <- pars_est[setdiff(names(pars_est),x0.na)]
-        model_im_est[[i]] <- solve_ode(x[[i]]$equations, pars_est_im, x0_im, time, x[[1]]$obs[xvars])
-        if(is.null(model_im_est[[i]])) {
-          fn <- ifelse(!is.null(fit_num),fit_num,i)
-          stop(paste0('Error running model with im estimates of fit #',fn))
-        }
+      simode_obj <- x[[i]]
+      simode_obj$time <- time
+      model_im_est[[i]] <- solve_ode2(simode_obj,'im')$im
+      if(is.null(model_im_est[[i]])) {
+        fn <- ifelse(!is.null(fit_num),fit_num,i)
+        stop(paste0('Error running model with im estimates of fit #',fn))
       }
     }
     model_im_est_mean <- matrix(0,nrow=length(time), ncol=length(vars))
@@ -797,12 +791,14 @@ plot_list_simode_fit <-
   for(var in vars) {
 
     ylab <- ifelse(is.null(fit_num),var,paste0(var,' (fit ',fit_num,')'))
+
+    time_var <- time_obs[[var]]
     plot(-100,-100,xlab='time',ylab=ylab,
-         xlim=c(time[1],time[length(time)]),
-         ylim=c(y_min[var],y_max[var]), ...)
+         xlim=c(time_var[1],time_var[length(time_var)]),
+         ylim=c(y_min[var],y_max[var]), main=main[var], ...)
 
     for(i in 1:length(x)) {
-      points(time_obs[[var]],x[[i]]$obs[[var]],col=cols[['obs']],...)
+      points(time_var,x[[i]]$obs[[var]],col=cols[['obs']],...)
     }
 
     if(!is.null(pars_true)) {

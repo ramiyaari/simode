@@ -86,7 +86,7 @@ estimated using non-linear optimization (see Details).}
 }
 \value{
 If \code{obs_sets=1}, the function returns a \code{simode} object containing the
-parameter estimates after integral-matching (stage 1) and after
+parameter estimates and solutions after integral-matching (stage 1) and after
 nonlinear least squares optimization (stage 2). If \code{obs_sets>1} and
 \code{obs_sets_fit!="together"} in \code{simode_ctrl}, the function
 returns a \code{list.simode} object which is a list of \code{simode} objects

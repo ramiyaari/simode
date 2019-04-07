@@ -44,5 +44,5 @@ simode_fits <- simode(
 
 summary(simode_fits,sum_mean_sd=T,pars_true=c(theta[pars],x0),digits=2)
 plot(simode_fits, type='fit', plot_mean_sd=T, pars_true=c(theta,x0), mfrow=c(2,1), legend=T)
-plot(simode_fits, type='est', show='both', plot_mean_sd=T,pars_true=c(theta,x0), legend=T)
+plot(simode_fits, type='est', show='both', plot_mean_sd=T, pars_true=c(theta,x0), legend=T)
 
