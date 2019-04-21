@@ -294,6 +294,10 @@ solve_ode2 <- function(x,type=c("both","im","nls")) {
   type <- match.arg(type)
   x0.na <- names(x$x0[is.na(x$x0)])
   xvars <- setdiff(names(x$obs),names(x$equations))
+  time <- x$time
+  if(is.list(time)) {
+    time <- sort(unique(unlist(time)))
+  }
   solution <- list()
   nls_pars_est <- x$nls_pars_est
   if(type!='im' && !is.null(nls_pars_est)) {
@@ -304,7 +308,7 @@ solve_ode2 <- function(x,type=c("both","im","nls")) {
     x0 <- x$x0
     x0[x0.na] <- nls_pars_est[x0.na]
     nls_pars_est <- nls_pars_est[setdiff(names(nls_pars_est),x0.na)]
-    nls_solution <- solve_ode(x$equations, nls_pars_est, x0, x$time, x$obs[xvars])
+    nls_solution <- solve_ode(x$equations, nls_pars_est, x0, time, x$obs[xvars])
     solution$nls <- nls_solution
   }
   im_pars_est <- x$im_pars_est

@@ -1022,8 +1022,10 @@ simode_impl <- function(x) {
 
       if(!is.null(simode_obj)) {
         sol <- solve_ode2(simode_obj)
-        simode_obj$im_sol <- sol$im[,-1]
-        simode_obj$nls_sol <- sol$nls[,-1]
+        if(!is.null(sol$im))
+          simode_obj$im_sol <- sol$im[,-1]
+        if(!is.null(sol$nls))
+          simode_obj$nls_sol <- sol$nls[,-1]
       }
     },
     error = function(e) { print(e) },
