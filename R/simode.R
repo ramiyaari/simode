@@ -615,6 +615,7 @@ simode_create <-
     lower_names <- intersect(pars,names(lower))
     lower_all[lower_names] <- lower[lower_names]
     lower <- lower_all
+    start <- pmax(start,lower[nlin_pars])
   }
   if(!is.null(upper)) {
     stopifnot(is.numeric(upper),!is.null(names(upper)))
@@ -629,6 +630,7 @@ simode_create <-
     upper_names <- intersect(pars,names(upper))
     upper_all[upper_names] <- upper[upper_names]
     upper <- upper_all
+    start <- pmin(start,upper[nlin_pars])
   }
 
   if(!(simode_ctrl$optim_type %in% c("im", "nls", "both"))) {
@@ -1030,7 +1032,8 @@ simode_impl <- function(x) {
     },
     error = function(e) { print(e) },
     finally = {
-      simode_obj$im <- simode_env$im
+      if(!is.null(simode_obj))
+        simode_obj$im <- simode_env$im
       rm(simode_env)
     }
   )

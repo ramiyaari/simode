@@ -689,8 +689,8 @@ plot_list_simode_fit <-
     }
     legend_text <- c(legend_text, 'true')
     legend_cols <- c(legend_cols, cols[['true']])
-    y_min1 <- apply(model_true[,vars], 2, function(col) min(col))
-    y_max1 <- apply(model_true[,vars], 2, function(col) max(col))
+    y_min1 <- apply(as.matrix(model_true[,vars]), 2, function(col) min(col))
+    y_max1 <- apply(as.matrix(model_true[,vars]), 2, function(col) max(col))
     y_min <- pmin(y_min,y_min1)
     y_max <- pmax(y_max,y_max1)
   }
@@ -722,8 +722,8 @@ plot_list_simode_fit <-
     text <- ifelse(plot_mean_sd,'nls_mean_sd','nls_fit')
     legend_text <- c(legend_text, text)
     legend_cols <- c(legend_cols, cols[['nls_fit']])
-    y_min1 <- apply(model_nls_est_mean[,vars]-model_nls_est_sd[,var], 2, function(col) min(col))
-    y_max1 <- apply(model_nls_est_mean[,vars]+model_nls_est_sd[,var], 2, function(col) max(col))
+    y_min1 <- apply(as.matrix(model_nls_est_mean[,vars]-model_nls_est_sd[,var]), 2, function(col) min(col))
+    y_max1 <- apply(as.matrix(model_nls_est_mean[,vars]+model_nls_est_sd[,var]), 2, function(col) max(col))
     y_min <- pmin(y_min,y_min1)
     y_max <- pmax(y_max,y_max1)
   }
