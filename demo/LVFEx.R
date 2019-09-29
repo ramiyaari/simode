@@ -31,13 +31,6 @@ for(i in 1:length(vars)) {
 }
 names(obs) <- vars
 
-
-# plot(time, x_det[,1], type='l', ylab=vars[1])
-# points(time, obs[[1]], col='red')
-# plot(time, x_det[,2], type='l', ylab=vars[2])
-# points(time, obs[[2]], col='red')
-
-
 # fit data  ----------------------------------------------------------
 
 nlin_pars <- c('epsilon','omega')
@@ -57,6 +50,8 @@ simode_fit <- simode(
                              nls_optim_method='Nelder-Mead'))
 
 simode_fit
+x11()
 plot(simode_fit, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+x11()
 plot(simode_fit, show='both', type='est', pars_true=theta, legend=T)
 

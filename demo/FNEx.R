@@ -52,7 +52,9 @@ est_fn <- simode(
   calc_nll=calc_nll, sigma=sigma)
 
 est_fn
+x11()
 plot(est_fn, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+x11()
 plot(est_fn, type='est', show='both', pars_true=theta, legend=T)
 
 ## estimate model parameters and sigma ----------------------------
@@ -78,5 +80,7 @@ est_fn_sig <- simode(
   start=init_vals, lower=lower, calc_nll=calc_nll_sig)
 
 est_fn_sig
+x11()
 plot(est_fn_sig, type='fit', pars_true=c(theta,sigma), mfrow=c(2,1), legend=T)
+x11()
 plot(est_fn_sig, type='est', show='both', pars_true=c(theta,sigma), legend=T)

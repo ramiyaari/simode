@@ -47,8 +47,18 @@ simode_fit <- function(equations, pars, time, obs,
                       vars2update=NULL, im_fit_prev=NULL, trace=0)
 {
 
-  eq_names <- names(equations)
   vars <- names(obs)
+  equations <- unlist(lapply(equations, function(eq) {
+    for (var in vars) {
+      eq <- gsub(paste0('\\<', var, '\\>'), paste0('v.',var), eq)
+    }
+    return (eq)
+  }))
+  vars.org <- vars
+  vars <- paste0('v.',vars)
+  names(obs) <- vars
+  names(equations) <- paste0('v.', names(equations))
+  eq_names <- names(equations)
 
   v <- length(vars)
   p <- length(pars)
@@ -68,7 +78,6 @@ simode_fit <- function(equations, pars, time, obs,
   if(!is.null(pars_max)) {
     pars_max[which(is.infinite(pars_max))] <- 1e100
   }
-
 
   if (is.null(x0) || any(is.na(x0))) {
     x0_min <- pars_min[intersect(names(x0),names(pars_min))]
@@ -270,7 +279,7 @@ simode_fit <- function(equations, pars, time, obs,
   }
 
   names(theta) <- pars
-  im_fit <- list(theta=theta, x0=x0, vars=vars, pars=pars, N=N,
+  im_fit <- list(theta=theta, x0=x0, vars=vars.org, pars=pars, N=N,
                  t=t, im_smooth=im_smooth, Z=Z, G=G, A=A, B=B)
 
   return (im_fit)

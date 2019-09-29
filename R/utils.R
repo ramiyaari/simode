@@ -224,27 +224,6 @@ solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
   equations <- lapply(1:length(equations), function(i) parse(text=equations[i]))
   names(equations) <- names(x0)
 
-  # dxvars <- list()
-  # if(!is.null(xvars) && length(xvars)>0) {
-  #   stopifnot(is.list(xvars))
-  #   for(j in 1:length(xvars)) {
-  #     stopifnot(!is.null(names(xvars[j])))
-  #     dxvars[[j]] <- c(diff(xvars[[j]])/diff(time),0)
-  #   }
-  #   eq_xvars <- vector(length=length(xvars))
-  #   xvars_names <- names(xvars)
-  #   eq_xvars <- lapply(1:length(eq_xvars), function(i) {
-  #     # parse(text=paste0(xvars_names[i],'_d[floor(t)]'))
-  #     parse(text=paste0(xvars_names[i],'_d[which.min(abs(times2-t))]'))
-  #   })
-  #   names(dxvars) <- paste0(xvars_names,'_d')
-  #   names(eq_xvars) <- xvars_names
-  #   equations <- c(equations,eq_xvars)
-  #   x0_xvars <- unlist(lapply(1:length(xvars), function(i) xvars[[i]][1]))
-  #   names(x0_xvars) <- xvars_names
-  #   x0 <- c(x0,x0_xvars)
-  # }
-
   arg_list <- list(...)
   trace <- arg_list$trace
   arg_list$trace <- NULL
@@ -291,6 +270,7 @@ solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
 #' @export
 #'
 solve_ode2 <- function(x,type=c("both","im","nls")) {
+  stopifnot(class(x)=='simode')
   type <- match.arg(type)
   x0.na <- names(x$x0[is.na(x$x0)])
   xvars <- setdiff(names(x$obs),names(x$equations))
