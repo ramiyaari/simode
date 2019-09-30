@@ -96,7 +96,6 @@ x^\prime_j(t)=\alpha_j\Pi_{k=1}^dx_k^{g_{jk}}(t)-\beta_j\Pi_{k=1}^dx_k^{h_{jk}}(
 $$
 Here, $\alpha_j,\beta_j$ are rate constants and $g_{jk},h_{jk}$ are kinetic orders that reflect the strength and directionality of the effect a variable has on a given influx or efflux. The system is linear in $\alpha_j,\beta_j$ but nonlinear in $g_{jk},h_{jk}$. For example, (9) can be written in the form of (8), as:
 $$
-\begin{eqnarray}
 \left(
 \begin{array}{c}
 x^\prime_1(t)
@@ -104,7 +103,7 @@ x^\prime_1(t)
 x^\prime_2(t)
 \end{array}
 \right)
-&=&
+=
 \left(
 \begin{array}{cccc}
 x_1^{g_{11}}(t)x_2^{g_{12}}(t),-x_1^{h_{11}}(t)x_2^{h_{12}}(t)
@@ -112,7 +111,6 @@ x_1^{g_{11}}(t)x_2^{g_{12}}(t),-x_1^{h_{11}}(t)x_2^{h_{12}}(t)
 x_1^{g_{21}}(t)x_2^{g_{22}}(t),-x_1^{h_{21}}(t)x_2^{h_{22}}(t)
 \end{array}
 \right)\theta_L,
-\end{eqnarray}
 $$
 where $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top=(2,2.4,4,2)^\top$, and  $\theta_{NL}=(g_{11},g_{12},h_{11},h_{12},g_{21},g_{22},h_{21},h_{22})^\top=(0,1,0.5,0,0.1,0,0,1)^\top$.
 
