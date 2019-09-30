@@ -1,4 +1,4 @@
-simode v1.1.5:
+simode v1.1.6:
 An R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process 
 and provide more robust solutions to parameter estimation problems. 
 
