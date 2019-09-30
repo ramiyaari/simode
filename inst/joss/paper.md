@@ -81,13 +81,11 @@ It is not mandatory for the user of the package to know which parameters are lin
 Consider the following simple biochemical system taken from Chapter 2, Page 54 of [@voit2000computational]:
 $$
 (9) \quad
-\begin{equation}
 \begin{array}{l}
 x_1^{\prime}(t)=2x_2(t)-2.4x_1(t)^{0.5},
 \\
 x_2^{\prime}(t)=4x_1(t)^{0.1}-2x_2(t)
 \end{array}
-\end{equation}
 $$
 
 
