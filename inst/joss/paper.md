@@ -10,7 +10,7 @@ output:
   html_document:
     df_print: paged
   pdf_document: default
-bibliography: simode.bib
+bibliography: paper.bib
 tags:
 - R
 - dynamic systems
