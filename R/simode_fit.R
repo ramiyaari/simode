@@ -47,6 +47,7 @@ simode_fit <- function(equations, pars, time, obs,
                       vars2update=NULL, im_fit_prev=NULL, trace=0)
 {
 
+  eq_names <- names(equations)
   vars <- names(obs)
   equations <- unlist(lapply(equations, function(eq) {
     for (var in vars) {
@@ -57,8 +58,6 @@ simode_fit <- function(equations, pars, time, obs,
   vars.org <- vars
   vars <- paste0('v.',vars)
   names(obs) <- vars
-  names(equations) <- paste0('v.', names(equations))
-  eq_names <- names(equations)
 
   v <- length(vars)
   p <- length(pars)
@@ -124,7 +123,7 @@ simode_fit <- function(equations, pars, time, obs,
      !pracma::isempty(setdiff(1:d,vars2update)) &&
      !is.null(im_fit_prev)) {
 
-    stopifnot(all(im_fit_prev$vars==vars),
+    stopifnot(all(im_fit_prev$vars==vars.org),
               all(im_fit_prev$pars==pars),
               im_fit_prev$N==N)
 
