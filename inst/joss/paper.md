@@ -53,8 +53,8 @@ $$(5) \quad F(x(t);\theta)=g(x(t))\theta$$
 This ODE system is separable in the linear parameter vector $\theta$.
 In this case, minimizing the integral criterion function (4) with respect
 to $\zeta$ and $\eta$ results in the direct estimators
-$$(6) \quad \hat{\xi}=\left(TI_d - \hat{A} \hat{B}^{-1} \hat{A}^\top\right)^{-1} \int_0^T \left(I_d -\hat{A}\hat{B}^{-1}\hat{G}^\top(t)\right) \hat{x}(t)\,dt,\\
-(7) \quad \hat{\theta}=\hat{B}^{-1} \int_0^T \hat{G}^\top(t) \left(\hat{x}(t) -\hat{\xi} \right) dt$$
+$$(6) \quad \hat{\xi}=\left(TI_d - \hat{A} \hat{B}^{-1} \hat{A}^\top\right)^{-1} \int_0^T \left(I_d -\hat{A}\hat{B}^{-1}\hat{G}^\top(t)\right) \hat{x}(t)\,dt,$$
+$$(7) \quad \hat{\theta}=\hat{B}^{-1} \int_0^T \hat{G}^\top(t) \left(\hat{x}(t) -\hat{\xi} \right) dt$$
 where $I_d$ denotes the $d \times d$ identity matrix and where
 $$\hat{G}(t)=\int_0^t g(\hat{x}(s))\,ds\,,\quad t \in [0,T],\nonumber \\
 \hat{A}=\int_0^T \hat{G}(t)\,dt, \\
