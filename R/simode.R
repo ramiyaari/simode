@@ -736,7 +736,7 @@ simode_create <-
 #' initial conditions. Parameters in this list will not be estimated.
 #' @param start Named vector. Starting values for optimization of parameters/initial conditions.
 #' Must contain starting values for all the parameters in \code{nlin_pars}
-#' and \code{likelihood_pars}. If im_method="non-seperable", can optionally contain
+#' and \code{likelihood_pars}. If im_method="non-separable", can optionally contain
 #' starting values for any other parameter/initial condition.
 #' @param lower Named vector. Lower bounds for any parameter/initial condition.
 #' @param upper Named vector. Upper bounds for any parameter/initial condition.
