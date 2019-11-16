@@ -185,7 +185,7 @@ R> plot(est_lin, type='fit', pars_true=theta[lin_pars],
 +       mfrow=c(1,2), legend=T)
 ```
 
-![Figure 1: True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (9)](figure1.png)
+![True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (9)](figure1.png)
 
 
 The same plot function can also be used to show the obtained estimates (Figure 2):
@@ -194,7 +194,7 @@ R> plot(est_lin, type='est', show='both',
 +       pars_true=theta[lin_pars], legend=T)
 ```
 
-![Figure 2: Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png){ width=75% }
+![Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png){ width=50% }
 
 Now we can generate confidence intervals for the parameters using profile likelihood. In case nonlinear optimization for the point estimates was used, then the profiling is done using a Gaussian based likelihood with fixed sigma which we estimate in the background.
 
@@ -221,7 +221,7 @@ We can also plot the obtained likelihood profiles (Figure 3):
 R> plot(profile_lin, mfrow=c(2,2))
 ```
 
-![Figure 3: Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png){ width=75% }
+![Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png){ width=50% }
 
 Now let us assume the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$ are not known. Estimating nonlinear parameters requires nonlinear optimization. The function 'simode' uses the 'optim' function for that, thus we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
 
