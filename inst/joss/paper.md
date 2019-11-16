@@ -33,7 +33,7 @@ Systems of ordinary differential equations (ODEs) are commonly used for mathemat
 
 ``simode`` is an R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. The package implements a 'two-stage' approach. In the first stage, fast estimates of the ODEs' parameters are calculated by way of minimization of an integral criterion function while taking into account separability of parameters and equations (if such a mathematical feature exists). In the second stage, a regular nonlinear least-squares optimization is performed starting from the estimates obtained in the first stage, in order to try and improve these estimates.
 
-The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations \citep(@dattner2015, @dattner2015model, @dattner2017modelling, @yaarietal18, @dattnergugushvili18). In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria,``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
+The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations [@dattner2015, @dattner2015model, @dattner2017modelling, @yaarietal18, @dattnergugushvili18]. In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria,``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
 
 # Statistical Methodology
 
@@ -186,7 +186,7 @@ R> plot(est_lin, type='fit', pars_true=theta[lin_pars],
 +       mfrow=c(1,2), legend=T)
 ```
 
-[Figure 1: True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation  (9)](figure1.png)
+![Figure 1: True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation  (9)](figure1.png)
 
 
 The same plot function can also be used to show the obtained estimates (Figure 2):
@@ -195,7 +195,7 @@ R> plot(est_lin, type='est', show='both',
 +       pars_true=theta[lin_pars], legend=T)
 ```
 
-[Figure 2: Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png)
+![Figure 2: Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png)
 
 Now we can generate confidence intervals for the parameters using profile likelihood. In case nonlinear optimization for the point estimates was used, then the profiling is done using a Gaussian based likelihood with fixed sigma which we estimate in the background.
 
@@ -222,7 +222,7 @@ We can also plot the obtained likelihood profiles (Figure 3):
 R> plot(profile_lin, mfrow=c(2,2))
 ```
 
-[Figure 3: Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png)
+![Figure 3: Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png)
 
 Now let us assume the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$ are not known. Estimating nonlinear parameters requires nonlinear optimization. The function 'simode' uses the 'optim' function for that, thus we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
 
