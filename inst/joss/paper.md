@@ -222,7 +222,7 @@ We can also plot the obtained likelihood profiles (Figure 3):
 R> plot(profile_lin, mfrow=c(2,2))
 ```
 
-![Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png){ width=65% }
+![Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png){ width=60% }
 
 Now let us assume the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$ are not known. Estimating nonlinear parameters requires nonlinear optimization. The function 'simode' uses the 'optim' function for that, thus we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
 
