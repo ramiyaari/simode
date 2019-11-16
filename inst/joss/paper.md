@@ -11,6 +11,7 @@ output:
     df_print: paged
   pdf_document: default
 bibliography: paper.bib
+csl: vancouver.csl
 tags:
 - R
 - dynamic systems
@@ -30,10 +31,9 @@ affiliations:
 
 Systems of ordinary differential equations (ODEs) are commonly used for mathematical modeling of the rate of change of dynamic processes in areas such as mathematical biology [@edelstein2005mathematical], biochemistry [@voit2000computational] and compartmental models in epidemiology [@anderson1992infectious], to mention a few. Inference of ODEs involves the 'standard' statistical problems such as studying the identifiability of a model, estimating model parameters, predicting future states of the system, testing hypotheses, and choosing the 'best' model. However, dynamic systems are typically very complex: nonlinear, high dimensional and only partialy measured. Moreover, data may be sparse and noisy. Thus, statistical learning (inference, prediction) of dynamical systems is not a trivial task in practice. In particular, numerical application of standard estimators, like the maximum-likelihood or the least-squares, may be difficult or computationally costly. It typically requires solving the system numerically for large set of potential parameters values, and choosing the optimal values using some nonlinear optimization technique. Starting from a random initial guess, the optimization can take a long time to converge to the optimal solution. Furthermore, there is no guarantee the optimization will converge to the optimal solution at all.   
 
-``simode`` is an R package for conducting statistical inference for ordinary differential equations 
-that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. The package implements a 'two-stage' approach. In the first stage, fast estimates of the ODEs parameters are calculated by way of minimization of an integral criterion function while taking into account separability of parameters and ODEs equations (if such a mathematical feature exists). In the second stage, a regular nonlinear least-squares optimization is performed starting from the estimates obtained in the first stage, in order to try and improve these estimates.
+``simode`` is an R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. The package implements a 'two-stage' approach. In the first stage, fast estimates of the ODEs' parameters are calculated by way of minimization of an integral criterion function while taking into account separability of parameters and equations (if such a mathematical feature exists). In the second stage, a regular nonlinear least-squares optimization is performed starting from the estimates obtained in the first stage, in order to try and improve these estimates.
 
-The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations ([@dattner2015], [@dattner2015model], [@dattner2017modelling], [@yaarietal18], [@dattnergugushvili18]). In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria,``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
+The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations \citep(@dattner2015, @dattner2015model, @dattner2017modelling, @yaarietal18, @dattnergugushvili18). In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria,``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
 
 # Statistical Methodology
 
@@ -44,7 +44,7 @@ $$(2) \quad Y_{j}(t_i)=x_j(t_i; \theta,\xi)+\epsilon_{ij}, \quad i=1,\ldots,n,j=
 where the random variables $\epsilon_{ij}$ are independent
 measurement errors (not necessarily Gaussian) with zero mean and finite variance. By integration, equation (1) yields the system of integral equations
 $$(3) \quad x(t)=\xi + \int_0^t F( x(s);\theta)\, ds\,\ t\in[0,T].$$
-Here $x(t)=x(t;\theta,\xi)$ is the true solution of the ODE. Let $\hat{x}(t)$ stand for a nonparametric estimator (e.g., smoothing the data using splines or local polynomials) of the solution $x$ of the ODEs equations given observations (2). The criterion function of an integral-matching approach for a fully observed systems of ODEs takes the form
+Here $x(t)=x(t;\theta,\xi)$ is the true solution of the ODE. Let $\hat{x}(t)$ stand for a nonparametric estimator (e.g., smoothing the data using splines or local polynomials) of $x$ given the observations (2). The criterion function of an integral-matching approach for a fully observed systems of ODEs takes the form
 $$(4) \quad \int_0^T\parallel\hat{x}(t)-\zeta - \int_0^t F( \hat x(s);\eta)\, ds\parallel^2 dt$$
 where $\parallel \cdot \parallel$ denotes the standard Euclidean norm. The estimator of the parameter will be the minimizer of the criterion function (3), with respect to $\zeta$ and $\eta$. As its name suggests, integral-matching avoids the estimation of derivatives of the solution $x$ as done in other smooth and match applications and hence is more stable [@dattner2015]. 
 
@@ -69,7 +69,7 @@ It is not mandatory for the user of the package to know which parameters are lin
 
   * external input functions - inference of systems that employ external time-related data or function.
   * user-defined likelihood functions - inference using a user-defined likelihood function.
-  * partially observed systems - inference of partially observed system is supported when the unobserved variables can be reconstructed using estimates of the system parameters.
+  * partially observed systems - inference of partially observed systems is supported when the unobserved variables can be reconstructed using estimates of the system parameters.
   * multiple subjects - inference using observations of multiple subjects (experiments), where some parameters are assumed to be the same for all subjects while other parameters are specific to an individual subject.
   * system decoupling - estimation of each equation's parameters separately using data smoothing to replace variables appearing in that equation. As [@voit2004decoupling] have shown, this may lead to better reconstruction of the underlying dynamic system.
   * parallel Monte-Carlo simulations - fitting in parallel sets of of observations from Monte Carlo simulations. 
@@ -150,8 +150,8 @@ Now that we have setup the system of ODEs in a symbolic form and generated obser
 ```
 R> lin_pars <- c('alpha1','beta1','alpha2','beta2')
 R> nlin_pars <- setdiff(pars,lin_pars)
-R> est_lin <- simode(
-+    equations=equations, pars=lin_pars, fixed=c(x0,theta[nlin_pars]), time=time, obs=obs)
+R> est_lin <- simode(equations=equations, pars=lin_pars, 
++                    fixed=c(x0,theta[nlin_pars]), time=time, obs=obs)
 R> summary(est_lin)
 
 call:
@@ -182,7 +182,8 @@ nls-loss:  0.2398
 The call to 'simode' returns an object of class ``simode``, containing the parameters estimates obtained using integral-matching (im_est) as well as those obtained using nonlinear least-squares  optimization starting from the integral-matching estimates (nls_est). An implementation of the generic plot function for ``simode`` objects can be used to plot the fits obtained using these estimates (Figure 1). In this case, it is also possible to plot the fit against the true curves, since the true values of the parameters that were used to generate the observations are known. 
 
 ```
-R> plot(est_lin, type='fit', pars_true=theta[lin_pars], mfrow=c(1,2), legend=T)
+R> plot(est_lin, type='fit', pars_true=theta[lin_pars], 
++       mfrow=c(1,2), legend=T)
 ```
 
 [Figure 1: True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation  (9)](figure1.png)
@@ -190,7 +191,8 @@ R> plot(est_lin, type='fit', pars_true=theta[lin_pars], mfrow=c(1,2), legend=T)
 
 The same plot function can also be used to show the obtained estimates (Figure 2):
 ```
-R> plot(est_lin, type='est', show='both', pars_true=theta[lin_pars], legend=T)
+R> plot(est_lin, type='est', show='both', 
++       pars_true=theta[lin_pars], legend=T)
 ```
 
 [Figure 2: Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png)
@@ -222,7 +224,7 @@ R> plot(profile_lin, mfrow=c(2,2))
 
 [Figure 3: Profile likelihood confidence intervals for the linear parameters of system (9)](figure3.png)
 
-Now lets assume the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$ are not known. Estimating nonlinear parameters requires nonlinear optimization. The function 'simode' uses the 'optim' function for that, thus we need to provide initial guess for optimization. In this example, we generate random initial guess in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
+Now let us assume the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$ are not known. Estimating nonlinear parameters requires nonlinear optimization. The function 'simode' uses the 'optim' function for that, thus we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. The code and estimation results are given below.
 
 ```
 R> nlin_init <- rnorm(length(theta[nlin_pars]),theta[nlin_pars],
