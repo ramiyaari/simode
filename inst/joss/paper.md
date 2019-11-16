@@ -111,7 +111,8 @@ x_1^{g_{21}}(t)x_2^{g_{22}}(t),-x_1^{h_{21}}(t)x_2^{h_{22}}(t)
 \end{array}
 \right)\theta_L,
 $$
-where $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top=(2,2.4,4,2)^\top$, and  $\theta_{NL}=(g_{11},g_{12},h_{11},h_{12},g_{21},g_{22},h_{21},h_{22})^\top=(0,1,0.5,0,0.1,0,0,1)^\top$.
+where $$\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top=(2,2.4,4,2)^\top$$, and 
+$$\theta_{NL}=(g_{11},g_{12},h_{11},h_{12},g_{21},g_{22},h_{21},h_{22})^\top=(0,1,0.5,0,0.1,0,0,1)^\top$$.
 
 Here we demonstrate how to define this system symbolically, in order to be used with ``simode``:
 
