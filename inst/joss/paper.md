@@ -3,7 +3,7 @@ title: 'simode: R Package for Statistical Inference of Ordinary Differential Equ
 authors:
 - affiliation: 1, 2
   name: Rami Yaari
-- affiliation: 2
+- affiliation: 1
   name: Itai Dattner
 date: "23 September 2019"
 output:
