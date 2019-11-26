@@ -1,7 +1,7 @@
 Package: simode
 Type: Package
 Title: Statistical Inference for Systems of Ordinary Differential Equations using Separable Integral-Matching
-Version: 1.1.6
+Version: 1.1.7
 Authors@R: c(
     person("Itai", "Dattner", email = "idattner@stat.haifa.ac.il", role = "aut"),
     person("Rami", "Yaari", email = "ramiyaari@gmail.com", role = c("aut", "cre")))
@@ -21,7 +21,8 @@ Suggests:
     Rcgmin,
     Rvmmin,
     R.rsp,
-    knitr
+    knitr,
+    testthat
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

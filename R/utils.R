@@ -335,7 +335,7 @@ smooth_obs <- function(im_smoothing=c('splines','kernel','none'),obs,time,t,bw_f
     }
   }
   else {
-    sobs <- interp1(time,obs,xi=t,method='spline')
+    sobs <- interp1(time,obs,xi=t,method='linear') #'spline')
   }
   return (sobs)
 }

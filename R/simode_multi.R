@@ -667,7 +667,7 @@ plot_list_simode_fit <-
   else {
     if(is.null(time))
       time <- sort(unique(unlist(x[[1]]$time)))
-    time_obs <- x[[1]]$time[which(names(x[[1]]$obs)==vars)]
+    time_obs <- x[[1]]$time[which(names(x[[1]]$obs) %in% vars)]
   }
   names(time_obs) <- vars
 

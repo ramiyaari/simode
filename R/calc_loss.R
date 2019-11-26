@@ -246,7 +246,13 @@ calc_nls_loss <- function(pars, equations, x0, time, obs,
 
   args <- c(list(equations=equations, pars=non_x0_pars,
                  x0=x0, time=time_ode, xvars=xvars_obs, trace=trace), ode_control)
-  model_out <- do.call(solve_ode, args)
+  tryCatch({
+    model_out <- do.call(solve_ode, args)
+  },
+  error = function(e) {
+    print(e)
+    model_out <- NULL
+    })
 
   if(is.null(model_out) || (length(model_out[,1]) != length(time_ode))) {
     return (Inf)
