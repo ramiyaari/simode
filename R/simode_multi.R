@@ -89,6 +89,9 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
   vars <- names(obs[[1]])
   equations_m <- c()
   obs_m <- c()
+  time_m <- c()
+  if(!is.list(time))
+    time_m <- time
   obs_sets <- length(obs)
   for(i in 1:obs_sets) {
     vars1 <- paste0(vars,sep,i)
@@ -96,6 +99,12 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
     obs1 <- obs[[i]]
     names(obs1) <- vars1
     obs_m <- c(obs_m,obs1)
+    if(is.list(time)) {
+      stopifnot(length(time)==length(obs1))
+      time1 <- time
+      names(time1) <- vars1
+      time_m <- c(time_m,time1)
+    }
     equations1 <- fix_pars(equations,vars1)
     names(equations1) <- paste0(eq_names,sep,i)
     equations_m <- c(equations_m,equations1)
@@ -112,15 +121,32 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
     nlin_pars_x0_ex <- paste0(nlin_pars_x0,sep,unlist(lapply(1:obs_sets,function(i) rep(i,length(nlin_pars_x0)))))
     nlin_pars_m <- c(setdiff(nlin_pars,nlin_pars_x0),nlin_pars_x0_ex)
   }
-  fixed_m <- fixed
-  fixed_x0_names <- intersect(names(fixed),eq_names)
-  if(!pracma::isempty(fixed_x0_names)) {
-    fixed_x0 <- rep(fixed[fixed_x0_names],obs_sets)
-    names(fixed_x0) <-
-      paste0(fixed_x0_names,sep,
-             unlist(lapply(1:obs_sets,function(i) rep(i,length(equations)))))
-    fixed_m <- c(fixed[setdiff(names(fixed),fixed_x0_names)],fixed_x0)
+  if(!is.list(fixed)) {
+    fixed_m <- fixed
+    fixed_x0_names <- intersect(names(fixed),eq_names)
+    if(!pracma::isempty(fixed_x0_names)) {
+      fixed_x0 <- rep(fixed[fixed_x0_names],obs_sets)
+      names(fixed_x0) <-
+        paste0(fixed_x0_names,sep,
+               unlist(lapply(1:obs_sets,function(i) rep(i,length(equations)))))
+      fixed_m <- c(fixed[setdiff(names(fixed),fixed_x0_names)],fixed_x0)
+    }
   }
+  else {
+    stopifnot(length(fixed)==obs_sets)
+    fixed_m <- c()
+    for(i in 1:obs_sets) {
+      fixed_x0_names <- intersect(names(fixed[[i]]),eq_names)
+      if(!pracma::isempty(fixed_x0_names)) {
+        fixed_x0 <- fixed[[i]][fixed_x0_names]
+        names(fixed_x0) <- paste0(fixed_x0_names,sep,i)
+        fixed_m <- c(fixed_m,fixed[[i]][setdiff(names(fixed[[i]]),fixed_x0_names)],fixed_x0)
+      }
+      else
+        fixed_m <- c(fixed_m,fixed[[i]])
+    }
+  }
+
   start_m <- start
   start_x0_names <- intersect(names(start),eq_names)
   if(!pracma::isempty(start_x0_names)) {
@@ -149,7 +175,7 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
     upper_m <- c(upper[setdiff(names(upper),upper_x0_names)],upper_x0)
   }
 
-  x <- simode(equations=equations_m, pars=pars_m, time=time, obs=obs_m,
+  x <- simode(equations=equations_m, pars=pars_m, time=time_m, obs=obs_m,
               nlin_pars=nlin_pars_m, likelihood_pars=likelihood_pars,
               fixed=fixed_m, start=start_m, lower=lower_m, upper=upper_m,
               im_method=im_method, decouple_equations=decouple_equations,
@@ -172,6 +198,10 @@ simode_multi_separate_x0 <- function(equations, pars, time, obs,
     x_list[[i]]$obs <- obs[[i]]
     x_list[[i]]$x0 <- NULL
     x_list[[i]]$x0[pars_x0] <- x$x0[paste0(pars_x0,sep,i)]
+    fixed_x0_names <- intersect(names(fixed[[i]]),eq_names)
+    if(!pracma::isempty(fixed_x0_names)) {
+      x_list[[i]]$x0[fixed_x0_names] <- fixed[[i]][fixed_x0_names]
+    }
     if(!is.null(x$im_pars_est)) {
       x_list[[i]]$im_pars_est <- x$im_pars_est[setdiff(pars,pars_x0)]
       x_list[[i]]$im_pars_est[pars_x0] <- x$im_pars_est[paste0(pars_x0,sep,i)]

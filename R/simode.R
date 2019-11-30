@@ -955,10 +955,6 @@ simode_decouple <- function(x) {
       x0 <- x$x0[eq_names0]
       obs <- x$obs[vars1]
       time <- x$time
-      if(is.list(time)) {
-        names(time) <- names(x$obs)
-        time <- x$time[vars1]
-      }
       nlin_pars <- x$nlin_pars[x$nlin_pars %in% pars1]
       start <- x$start[names(x$start) %in% pars1]
       lower <- x$lower[names(x$lower) %in% pars1]

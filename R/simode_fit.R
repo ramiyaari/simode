@@ -85,8 +85,8 @@ simode_fit <- function(equations, pars, time, obs,
     pars_max <- pars_max[setdiff(names(pars_max),names(x0_max))]
   }
 
-  min_time <- min(unlist(lapply(1:d,function(i) time[[i]][1])))
-  max_time <- max(unlist(lapply(1:d,function(i) time[[i]][length(time[[i]])])))
+  min_time <- min(unlist(lapply(1:v,function(i) time[[i]][1])))
+  max_time <- max(unlist(lapply(1:v,function(i) time[[i]][length(time[[i]])])))
 
   if(im_smoothing[1] == "kernel") {
     dt <- min(unlist(lapply(1:d,function(i) diff(time[[i]]))))/2

@@ -9,9 +9,7 @@ names(equations) <- vars
 x0 <- c(0.9,0.9)
 names(x0) <- vars
 time <- 1:10
-obs <- list()
-obs['X'] <- 1:10
-obs['Y'] <- 10:1
+obs <- list(X=1:10,Y=1:10)
 
 
 test_that("illegal equations errors are produced", {
