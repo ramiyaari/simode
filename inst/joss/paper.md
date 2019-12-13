@@ -28,18 +28,18 @@ affiliations:
 
 # Summary
 
-Systems of ordinary differential equations (ODEs) are commonly used for mathematical modeling of the rate of change of dynamic processes in areas such as mathematical biology [@edelstein2005mathematical], biochemistry [@voit2000computational] and compartmental models in epidemiology [@anderson1992infectious], to mention a few. Inference of ODEs involves the 'standard' statistical problems such as studying the identifiability of a model, estimating model parameters, predicting future states of the system, testing hypotheses, and choosing the 'best' model. However, dynamic systems are typically very complex: nonlinear, high dimensional and only partialy measured. Moreover, data may be sparse and noisy. Thus, statistical learning (inference, prediction) of dynamical systems is not a trivial task in practice. In particular, numerical application of standard estimators, like the maximum-likelihood or the least-squares, may be difficult or computationally costly. It typically requires solving the system numerically for large set of potential parameters values, and choosing the optimal values using some nonlinear optimization technique. Starting from a random initial guess, the optimization can take a long time to converge to the optimal solution. Furthermore, there is no guarantee the optimization will converge to the optimal solution at all.   
+Systems of ordinary differential equations (ODEs) are commonly used for mathematical modeling of the rate of change of dynamic processes in areas such as mathematical biology [@edelstein2005mathematical], biochemistry [@voit2000computational] and compartmental models in epidemiology [@anderson1992infectious], to mention a few. Inference of ODEs involves the 'standard' statistical problems such as studying the identifiability of a model, estimating model parameters, predicting future states of the system, testing hypotheses, and choosing the 'best' model. However, dynamical systems are typically very complex: nonlinear, high dimensional and only partialy measured. Moreover, data may be sparse and noisy. Thus, statistical learning (inference, prediction) of dynamical systems is not a trivial task in practice. In particular, numerical application of standard estimators, like maximum-likelihood or least-squares, may be difficult or computationally costly. It typically requires solving the system numerically for a large set of potential parameters values, and choosing the optimal values using some nonlinear optimization technique. Starting from a random initial guess, the optimization can take a long time to converge to the optimal solution. Furthermore, there is no guarantee the optimization will converge to the optimal solution at all.   
 
 ``simode`` is an R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. The package implements a 'two-stage' approach. In the first stage, fast estimates of the ODEs' parameters are calculated by way of minimization of an integral criterion function while taking into account separability of parameters and equations (if such a mathematical feature exists). In the second stage, a regular nonlinear least-squares optimization is performed starting from the estimates obtained in the first stage, in order to try and improve these estimates.
 
-The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations [@dattner2015; @dattner2015model; @dattner2017modelling; @yaarietal18; @dattnergugushvili18]. In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria,``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
+The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations [@dattner2015; @dattner2015model; @dattner2017modelling; @yaarietal18; @dattnergugushvili18]. In that sense ``simode`` is close in spirit to the ``CollocInfer`` R package of [@hooker2015collocinfer] and the ``episode`` R package of [@mikkelsen2017learning]. Unlike ``CollocInfer``, ``simode`` does not involve penalized estimation but focuses on integral-matching criterion functions instead. Unlike ``episode`` that also uses integral-matching criteria, ``simode`` uses a minimization procedure that takes advantage of the mathematical structure of the ODEs (i.e., separability of parameters from equations).
 
 # Statistical Methodology
 
 A system of ODEs is given by 
 $$(1) \quad x^{\prime}(t)= F(x(t);\theta),\ t\in[0,T], x(0)=\xi$$
 where $x(t)$ takes values in $R^d,\, \xi$ in $\Xi\subset R^d,$ and $\theta$ in $\Theta\subset R^p$. Let $x(t;\theta,\xi), t \in [0, T ]$ be the solution of the initial value problem (1) given values of $\xi$ and $\theta$. We assume measurements of $x$ are collected at discrete time points
-$$(2) \quad Y_{j}(t_i)=x_j(t_i; \theta,\xi)+\epsilon_{ij}, \quad i=1,\ldots,n,j=1,\ldots,d$$
+$$(2) \quad Y_{j}(t_i)=x_j(t_i; \theta,\xi)+\epsilon_{ij}, \quad i=1,\ldots,n j=1,\ldots,d$$
 where the random variables $\epsilon_{ij}$ are independent
 measurement errors (not necessarily Gaussian) with zero mean and finite variance. By integration, equation (1) yields the system of integral equations
 $$(3) \quad x(t)=\xi + \int_0^t F( x(s);\theta)\, ds\,\ t\in[0,T].$$
@@ -71,7 +71,7 @@ It is not mandatory for the user of the package to know which parameters are lin
   * partially observed systems - inference of partially observed systems is supported when the unobserved variables can be reconstructed using estimates of the system parameters.
   * multiple subjects - inference using observations of multiple subjects (experiments), where some parameters are assumed to be the same for all subjects while other parameters are specific to an individual subject.
   * system decoupling - estimation of each equation's parameters separately using data smoothing to replace variables appearing in that equation. As [@voit2004decoupling] have shown, this may lead to better reconstruction of the underlying dynamic system.
-  * parallel Monte-Carlo simulations - fitting in parallel sets of of observations from Monte Carlo simulations. 
+  * parallel Monte-Carlo simulations - fitting in parallel sets of observations from Monte Carlo simulations. 
   * confidence intervals - calculation of confidence intervals for the parameters estimates using profile likelihood. 
 
 
@@ -91,7 +91,7 @@ $$
 This system is a special case of an S-system [@voit2000computational] defined as
 
 $$
-x^\prime_j(t)=\alpha_j\Pi_{k=1}^dx_k^{g_{jk}}(t)-\beta_j\Pi_{k=1}^dx_k^{h_{jk}}(t), \quad j=1\dots,d.
+x^\prime_j(t)=\alpha_j\Pi_{k=1}^dx_k^{g_{jk}}(t)-\beta_j\Pi_{k=1}^dx_k^{h_{jk}}(t), \quad j=1,\dots,d.
 $$
 Here, $\alpha_j,\beta_j$ are rate constants and $g_{jk},h_{jk}$ are kinetic orders that reflect the strength and directionality of the effect a variable has on a given influx or efflux. The system is linear in $\alpha_j,\beta_j$ but nonlinear in $g_{jk},h_{jk}$. For example, (9) can be written in the form of (8), as:
 $$
@@ -129,7 +129,7 @@ R> x0 <- c(2,0.1)
 R> names(x0) <- vars
 ```
 
-The following code solves the model and generates observations according to the statistical model defined in equation (2), where the distribution of the measurement error is Gaussian with standard deviation of $0.05$. It uses the  'solve\_ode' in ``simode`` that wraps the 'ode' function of ``deSolve`` package [@deSolve] and accepts symbolic objects:
+The following code solves the model and generates observations according to the statistical model defined in equation (2), where the distribution of the measurement error is Gaussian with standard deviation of $0.05$. It uses 'solve\_ode' in ``simode`` that wraps the 'ode' function of ``deSolve`` package [@deSolve] and accepts symbolic objects:
 ```
 R> library("simode")
 R> set.seed(1000)
