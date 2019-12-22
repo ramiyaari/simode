@@ -145,9 +145,7 @@ R> for(i in 1:length(vars)) {
 R> names(obs) <- vars
 ```
 
-Now that we have setup the system of ODEs in a symbolic form and generated observations from the statistical model, we can use the ``simode`` package to estimate model parameters. 
-We define the linear parameters $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top$ and the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$.
-For the non-linear parameters we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. 
+Now that we have setup the system of ODEs in a symbolic form and generated observations from the statistical model, we can use the ``simode`` package to estimate model parameters. We define the linear parameters $\theta_L=(\alpha_1,\beta_1,\alpha_2,\beta_2)^\top$ and the nonlinear parameters $\theta_{NL}=(g_{12},h_{11},g_{21},h_{22})$. For the nonlinear parameters we need to provide initial guess values for optimization. In this example, we generate random initial guess values in the vicinity of the true nonlinear parameters. 
 The call to 'simode' returns an object of class ``simode``, containing the parameters estimates obtained using integral-matching (im_est) as well as those obtained using nonlinear least-squares optimization starting from the integral-matching estimates (nls_est). 
 
 ```
@@ -189,9 +187,9 @@ im-method:  separable
 im-loss:  0.1142 
 
 nls-loss:  0.239 
+```
 
-An implementation of the generic plot function for ``simode`` objects can be used to plot the fits obtained using these estimates (Figure 1). 
-In this case, it is also possible to plot the fit against the true curves, 
+An implementation of the generic plot function for ``simode`` objects can be used to plot the fits obtained using these estimates (Figure 1). In this case, it is also possible to plot the fit against the true curves, 
 since the true values of the parameters that were used to generate the observations are known. 
 ```
 R> plot(est, type='fit', pars_true=theta[lin_pars], 
