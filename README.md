@@ -1,3 +1,10 @@
+
+[![cran
+version](http://www.r-pkg.org/badges/version/simode)](https://cran.rstudio.com/web/packages/simode)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3576265.svg)](https://doi.org/10.5281/zenodo.3576265)
+[![joss](https://joss.theoj.org/papers/10.21105/joss.01850/status.svg)](https://doi.org/10.21105/joss.01850)
+
+
 #### simode v1.1.8:
 An R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. See, Dattner and Klassen (2015) and Dattner et al. (2017). 
 
@@ -67,11 +74,4 @@ Code contributions to simode are also very welcome.
 Dattner Itai, Klaassen Chris. <b>Optimal rate of direct estimators in systems of ordinary differential equations linear in functions of the parameters. </b><i>Electonic Journal of Statistics</i>, 9(2), 2015. [<a href="https://projecteuclid.org/euclid.ejs/1440680332">link</a>]
 
 Dattner Itai, Miller Ezer, Petrenko Margarita, Kadouri Daniel, Jurkevitch Edouard and Huppert Amit. <b>Modelling and parameter inference of predator–prey dynamics in heterogeneous environments using the direct integral approach. </b><i>Journal of the Royal Society Interface</i>, 14(126), 2017. [<a href="https://royalsocietypublishing.org/doi/10.1098/rsif.2016.0525">link</a>].
-
-
-[![cran
-version](http://www.r-pkg.org/badges/version/simode)](https://cran.rstudio.com/web/packages/simode)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3576265.svg)](https://doi.org/10.5281/zenodo.3576265)
-[![joss](https://joss.theoj.org/papers/10.21105/joss.01850/status.svg)](https://doi.org/10.21105/joss.01850)
-
 
