@@ -193,7 +193,7 @@ An implementation of the generic plot function for ``simode`` objects can be use
 since the true values of the parameters that were used to generate the observations are known. 
 ```
 R> plot(est, type='fit', pars_true=theta[lin_pars], 
-+       mfrow=c(1,2), legend=T)
++       mfrow=c(1,2), legend=TRUE)
 ```
 
 ![True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (9)](figure1.png)

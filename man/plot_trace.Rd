@@ -4,9 +4,14 @@
 \alias{plot_trace}
 \title{Plot optimization trace of a call to \code{simode}}
 \usage{
-plot_trace(x, show = c("nls", "im", "both"), which = NULL,
-  mfrow = par("mfrow"), cols = list(nls_fit = "blue", im_fit =
-  "green"), ...)
+plot_trace(
+  x,
+  show = c("nls", "im", "both"),
+  which = NULL,
+  mfrow = par("mfrow"),
+  cols = list(nls_fit = "blue", im_fit = "green"),
+  ...
+)
 }
 \arguments{
 \item{x}{\code{simode} object returned by a call to \code{\link{simode}}.}

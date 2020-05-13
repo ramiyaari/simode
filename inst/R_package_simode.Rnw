@@ -125,7 +125,7 @@ The \proglang{R} package \pkg{simode} is substantially different from all the ab
 \subsection[The focus of simode]{The focus of \pkg{simode}}
 The statistical methodologies applied in the package are based on recent publications that study theoretical and applied aspects of smoothing methods in the context of ordinary differential equations (\cite{dattner2015}, \cite{dattner2015model}, \cite{dattner2017modelling}, \cite{yaarietal18}, \cite{dattnergugushvili18}). In that sense \pkg{simode} is closer in spirit to \pkg{CollocInfer} R package of \cite{hooker2015collocinfer}, and \pkg{episode} R package of \cite{mikkelsen2017learning}. Unlike \pkg{CollocInfer} we do not consider penalized estimation which balances between data and model. Further, we focus on integral-matching criterion functions which were shown to be more robust than gradient based ones \cite{dattner2015}. Using integral-matching criteria takes us closer in spirit to the \pkg{episode} R package of \cite{mikkelsen2017learning}. However, we focus on several minimization procedures of an integral-matching criterion function, taking advantage of the mathematical structure of the ODEs like separability of parameters from equations. Linear features such as separability were shown to ease optimization and inference (\cite{dattner2015}, \cite{dattner2015model}, \cite{vujavcic2015time}, \cite{dattner2017modelling}, \cite{yaarietal18}, \cite{vujavcic2018consistency}).
 
-We demonstrate various functionalities of the package using different systems of ODEs. To be more specific, we demonstrate the ability of the package to implement a full estimation pipeline from point estimates to generating confidence intervals (using an example of S-system); deal with partially observed systems (using SIR example); user defined likelihood functions and system decoupling(using FitzHugh-Nagumo model); Monte-Carlo and multiple subjects expeirments (using Lotka-Volterra example) and models with an external input functions (using a seasonally forced Lotka-Volterra example). 
+We demonstrate various functionalities of the package using different systems of ODEs. To be more specific, we demonstrate the ability of the package to implement a full estimation pipeline from point estimates to generating confidence intervals (using an example of S-system); deal with partially observed systems (using SIR example); user defined likelihood functions and system decoupling(using FitzHugh-Nagumo model); Monte-Carlo and multiple subjects expeirments (using Lotka-Volterra example) and models with an external input functions (using a seasonally forced Lotka-Volterra example).
 
 The idea of separability of parameters and equations is now explained. Consider the following simple biochemical system taken from Chapter 2, Page 54 of \cite{voit2000computational},
 
@@ -455,7 +455,7 @@ We can plot the resulting integral-maching and nonlinear least squares parameter
 \centering
 <<figure5, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
 
-plot(est_semilin, type='est', show='both', pars_true=theta, legend=T)
+plot(est_semilin, type='est', show='both', pars_true=theta, legend=TRUE)
 @
 \caption{\label{fig:caseb_pars} Case (b) separable: 'True' and estimated parameters of the biochemical system of equation (\ref{eq:biosimple}).}
 \end{figure}
@@ -477,7 +477,7 @@ summary(est_semilin_nosep)
 \begin{figure}[t!]
 \centering
 <<figure6, echo=TRUE, fig=TRUE, height=5, width=11, fig.show##=hold, eval=TRUE>>=
-plot(est_semilin_nosep, type='fit', pars_true=theta, mfrow=c(1,2), legend=T)
+plot(est_semilin_nosep, type='fit', pars_true=theta, mfrow=c(1,2), legend=TRUE)
 @
 \caption{\label{fig:casebnosep} Case (b) non-separable: 'True' and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (\ref{eq:biosimple}).}
 \end{figure}
@@ -601,7 +601,7 @@ plot(est_sir_lin, type='fit', which=names(I0),
 \centering
 <<figure_sir1b, echo=TRUE, fig=TRUE, height=5, width=8, fig.show##=hold, eval=TRUE>>=
 plot(est_sir_lin, type='est', show='both',
-     pars_true=beta, legend=T)
+     pars_true=beta, legend=TRUE)
 @
 \caption{\label{fig:sir_a2} SIR case (a) - estimates of $\beta$}
 \end{figure}
@@ -741,7 +741,7 @@ which will be passed in the call to \code{simode} using the \code{calc\_nll} arg
 calc_nll <- function(pars, time, obs, model_out, sigma, ...) {
 
   -sum(unlist(lapply(names(obs),function(var) {
-    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
   })))
 }
 @
@@ -779,7 +779,7 @@ Now the above example is explored but with unknown variance which requires estim
 calc_nll_sig <- function(pars, time, obs, model_out, ...) {
   sigma <- pars['sigma']
   -sum(unlist(lapply(names(obs),function(var) {
-    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
   })))
 }
 
@@ -870,7 +870,7 @@ simply set \code{obs} to the list with the Monte Carlo observations (\code{mc\_o
 <<LV fit, eval=TRUE>>=
 lv_mc <- simode(
   equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
-  obs_sets=N, simode_ctrl=simode.control(parallel=T))
+  obs_sets=N, simode_ctrl=simode.control(parallel=TRUE))
 summary(lv_mc,sum_mean_sd=T,pars_true=c(theta,x0),digits=2)$est
 @
 
@@ -880,8 +880,8 @@ Setting the parameter \code{plot\_mean\_sd=T} the function plots the mean and st
 \begin{figure}[t!]
 \centering
 <<figure1lv, echo=TRUE, fig=TRUE, height=5, width=8, fig.show##=hold, eval=TRUE>>=
-plot(lv_mc, type='est', show='both', plot_mean_sd=T,
-     pars_true=c(theta,x0), legend=T)
+plot(lv_mc, type='est', show='both', plot_mean_sd=TRUE,
+     pars_true=c(theta,x0), legend=TRUE)
 @
 \caption{\label{fig:lv1} Mean and standard deviation of the parameter estimates from ten Monte-Carlo simulations of the Lotka-Volterra model (\ref{eq:lv}).}
 \end{figure}
@@ -925,7 +925,7 @@ for(j in 1:N) {
 
 simode_fits_multi <- simode(
   equations=equations, pars=c(pars,vars), time=time,
-  obs=obs, obs_sets=N, decouple_equations=T,
+  obs=obs, obs_sets=N, decouple_equations=TRUE,
   simode_ctrl=simode.control(obs_sets_fit='separate_x0'))
 
 x0_vals
@@ -1020,7 +1020,7 @@ summary(lv_force1)$est
 \begin{figure}[t!]
 \centering
 <<figure_lv_forced_1, echo=FALSE, fig=TRUE, height=5, width=11, fig.show=hold>>=
-plot(lv_force1, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+plot(lv_force1, type='fit', pars_true=theta, mfrow=c(2,1), legend=TRUE)
 @
 \caption{\label{fig:lv_force_nm} Model fits according to the Lotka-Volterra equations (\ref{eq:lv_force}) using simplex ('Nelder-Mead') optimization method.}
 \end{figure}

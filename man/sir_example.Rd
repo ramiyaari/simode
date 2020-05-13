@@ -4,7 +4,8 @@
 \name{sir_example}
 \alias{sir_example}
 \title{Example dataset for a multi-group SIR model}
-\format{A list containing the following variables:
+\format{
+A list containing the following variables:
 \describe{
   \item{equations}{The ODE equations describing the system, including
   ten equations for the susceptible dynamics (2 groups * 5 seasons) and
@@ -17,7 +18,8 @@
   \item{time}{Times in which the observations were made (in weeks).}
   \item{obs}{A list of observations of the infected variables,
   generated using Gaussian measurement error with sigma=1e-3.}
-}}
+}
+}
 \usage{
 sir_example
 }

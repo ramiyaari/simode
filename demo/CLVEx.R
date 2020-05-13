@@ -23,7 +23,7 @@ for(i in 1:M) {
 names(equations) <- vars
 equations
 
-a <- matrix(c(1,1.09,1.52,0,0,1,0.44,1.36,2.33,0,1,0.47,1.21,0.51,0.35,1),4,4,byrow=T)
+a <- matrix(c(1,1.09,1.52,0,0,1,0.44,1.36,2.33,0,1,0.47,1.21,0.51,0.35,1),4,4,byrow=TRUE)
 
 b <- c(1,0.72,1.53,1.27)
 theta <- c(a,b)
@@ -86,13 +86,13 @@ theta[b_names]
 signif(summary(est_clv_m)$im_est[,b_names],2)
 
 x11()
-plot(est_clv_m[[1]],type='fit',show='im',legend=T)
+plot(est_clv_m[[1]],type='fit',show='im',legend=TRUE)
 
 x11()
-plot(est_clv_m[[1]],type='est',show='im',which=a_names,pars_true=theta[a_names],legend=T)
+plot(est_clv_m[[1]],type='est',show='im',which=a_names,pars_true=theta[a_names],legend=TRUE)
 
 x11()
-plot(est_clv_m[[1]],type='est',show='im',which=b_names,pars_true=theta[b_names],legend=T)
+plot(est_clv_m[[1]],type='est',show='im',which=b_names,pars_true=theta[b_names],legend=TRUE)
 for(i in 1:N) {
   x11()
   plot(est_clv_m[[i]],type='est',show='im',which=vars,pars_true=x0_vals[i,])

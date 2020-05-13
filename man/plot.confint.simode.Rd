@@ -4,8 +4,14 @@
 \alias{plot.confint.simode}
 \title{Plot confidence intervals for the model parameters}
 \usage{
-\method{plot}{confint.simode}(x, which = NULL, pars_true = NULL,
-  legend = F, cols = list(fit = "blue", true = "black"), ...)
+\method{plot}{confint.simode}(
+  x,
+  which = NULL,
+  pars_true = NULL,
+  legend = FALSE,
+  cols = list(fit = "blue", true = "black"),
+  ...
+)
 }
 \arguments{
 \item{x}{\code{confint.simode} object returned by a call to \code{\link{confint}}}

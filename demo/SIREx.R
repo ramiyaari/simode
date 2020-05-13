@@ -25,7 +25,7 @@ names(pars_min) <- pars
 
 ## a) estimating beta  -------------------------------------
 
-simode_ctrl = simode.control(trace=1, use_pars2vars_mapping=T)
+simode_ctrl = simode.control(trace=1, use_pars2vars_mapping=TRUE)
 
 est_sir_lin <- simode(
   equations=equations, pars=pars, time=time, obs=obs,
@@ -37,7 +37,7 @@ x11()
 plot(est_sir_lin, type='fit', which=names(I0), mfrow=c(5,2),
      time=seq(1,time[length(time)],by=0.1), pars_true=beta)
 x11()
-plot(est_sir_lin, type='est', show='both',pars_true=beta, legend=T)
+plot(est_sir_lin, type='est', show='both',pars_true=beta, legend=TRUE)
 
 ## b) estimating beta, S0   ----------------------------------------
 
@@ -71,10 +71,10 @@ est_sir_semilin <- simode(
 summary(est_sir_semilin)$est
 x11()
 plot(est_sir_semilin, type='est', which=names(beta), show='both',
-     pars_true=beta, legend=T)
+     pars_true=beta, legend=TRUE)
 x11()
 plot(est_sir_semilin, type='est', which=names(S0), show='both',
-     pars_true=S0, legend=T)
+     pars_true=S0, legend=TRUE)
 
 
 ## c) estimating beta, S0, gamma, kappa -------------------------
@@ -119,12 +119,12 @@ est_sir_all <- simode(
 summary(est_sir_all)$est
 x11()
 plot(est_sir_all, type='est', which=names(c(beta,gamma)), show='both',
-     pars_true=c(beta,gamma), legend=T)
+     pars_true=c(beta,gamma), legend=TRUE)
 x11()
 plot(est_sir_all, type='est', which=names(S0), show='both',
-     pars_true=S0, legend=T)
+     pars_true=S0, legend=TRUE)
 x11()
 plot(est_sir_all, type='est', which=names(kappa), show='both',
-     pars_true=kappa, legend=T)
+     pars_true=kappa, legend=TRUE)
 
 

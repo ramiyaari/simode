@@ -40,9 +40,9 @@ for(j in 1:N) {
 
 simode_fits <- simode(
   equations=equations, pars=c(pars,vars), time=time, obs=mc_obs,
-  obs_sets=N, simode_ctrl=simode.control(trace=1,parallel=T,save_to_log=T))
+  obs_sets=N, simode_ctrl=simode.control(trace=1,parallel=TRUE,save_to_log=TRUE))
 
-summary(simode_fits,sum_mean_sd=T,pars_true=c(theta[pars],x0),digits=2)
-plot(simode_fits, type='fit', plot_mean_sd=T, pars_true=c(theta,x0), mfrow=c(2,1), legend=T)
-plot(simode_fits, type='est', show='both', plot_mean_sd=T, pars_true=c(theta,x0), legend=T)
+summary(simode_fits,sum_mean_sd=TRUE,pars_true=c(theta[pars],x0),digits=2)
+plot(simode_fits, type='fit', plot_mean_sd=TRUE, pars_true=c(theta,x0), mfrow=c(2,1), legend=TRUE)
+plot(simode_fits, type='est', show='both', plot_mean_sd=TRUE, pars_true=c(theta,x0), legend=TRUE)
 

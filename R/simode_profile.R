@@ -28,7 +28,7 @@
 #'
 profile.simode <- function(
   fitted, which=NULL, optim_type=c("nls","both"),
-  step_size, max_steps=100, alpha=0.05, skip_err=T, trace=0, save_to_log=F, ...) {
+  step_size, max_steps=100, alpha=0.05, skip_err=TRUE, trace=0, save_to_log=FALSE, ...) {
 
   optim_type <- match.arg(optim_type)
 
@@ -89,7 +89,7 @@ profile.simode <- function(
 
   if(save_to_log) {
     log_file <- file.path(tempdir(),"simode.log")
-    sink(file=log_file, append=T)
+    sink(file=log_file, append=TRUE)
     cat(noquote((paste0("Call to profile on [", Sys.time(), "]:\n"))))
   }
 
@@ -278,7 +278,7 @@ plot.profile.simode <- function(x, which=NULL, mfrow=par('mfrow'),
   for(i in 1:length(which)) {
     par <- which[i]
     plot(x$profiles[[par]]$par_vals,
-         x$profiles[[par]]$nll_vals-min(x$profiles[[par]]$nll_vals,na.rm=T),
+         x$profiles[[par]]$nll_vals-min(x$profiles[[par]]$nll_vals,na.rm=TRUE),
          xlab=par,ylab=expression(paste(Delta,' NLL')),
          col=cols[['fit']], type='o', ...)
     abline(h=max_delta, col=cols[['threshold']])
@@ -392,7 +392,7 @@ calc_confint <- function(par_vals, nll_vals, max_delta, par_min, par_max) {
 #' @param ... Additional argument(s) for methods.
 #' @export
 #'
-plot.confint.simode<- function(x, which=NULL, pars_true=NULL, legend=F,
+plot.confint.simode<- function(x, which=NULL, pars_true=NULL, legend=FALSE,
                               cols=list(fit="blue",true="black"), ...) {
 
   pars <- which
@@ -412,11 +412,11 @@ plot.confint.simode<- function(x, which=NULL, pars_true=NULL, legend=F,
   upper_vals <- apply(as.matrix(1:lp),1,function(i) x$intervals[pind[i],]$upper)
   names(lower_vals) <- pars
   names(upper_vals) <- pars
-  y_min <- min(c(y_min,lower_vals),na.rm=T)
-  y_max <- max(c(y_max,upper_vals),na.rm=T)
+  y_min <- min(c(y_min,lower_vals),na.rm=TRUE)
+  y_max <- max(c(y_max,upper_vals),na.rm=TRUE)
   if(!is.null(pars_true)) {
-    y_min <- min(c(y_min,pars_true),na.rm=T)
-    y_max <- max(c(y_max,pars_true),na.rm=T)
+    y_min <- min(c(y_min,pars_true),na.rm=TRUE)
+    y_max <- max(c(y_max,pars_true),na.rm=TRUE)
   }
 
   legend_text <- c()

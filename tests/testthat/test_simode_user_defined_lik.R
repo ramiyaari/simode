@@ -31,7 +31,7 @@ names(init_vals) <- nlin_pars
 
 calc_nll <- function(pars, time, obs, model_out, sigma, ...) {
   -sum(unlist(lapply(names(obs),function(var) {
-      dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+      dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
       })))
 }
 
@@ -48,7 +48,7 @@ lower[lik_pars] <- 0
 calc_nll2 <- function(pars, time, obs, model_out, ...) {
   sigma <- pars['sigma']
   -sum(unlist(lapply(names(obs),function(var) {
-    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
   })))
 }
 

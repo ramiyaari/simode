@@ -30,14 +30,14 @@ calc_nll_normal <- function(pars, time, obs, model_out, sigma_name, ...) {
   sigma <- pars[sigma_name]
   if(is.vector(time)){
     -sum(unlist(lapply(names(obs),function(var) {
-      stats::dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+      stats::dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
     })))
   }
   else {
     time_ode <- model_out[,1]
     -sum(unlist(lapply(names(obs),function(var) {
       stats::dnorm(obs[[var]],mean=model_out[which(time_ode %in% time[[var]]),var],
-                   sd=sigma,log=T)
+                   sd=sigma,log=TRUE)
     })))
   }
 }
@@ -85,17 +85,17 @@ calc_im_loss <- function(pars, equations, x0, time, obs,
                          pars_min=NULL, pars_max=NULL, gen_obs=NULL, scale_pars=NULL,
                          pars2vars=NULL, im_smoothing=c('splines','kernel','none'),
                          im_grid_size=0, bw_factor=1.5,
-                         trace=0, save_im_trace=F, simode_env=emptyenv(), ...)
+                         trace=0, save_im_trace=FALSE, simode_env=emptyenv(), ...)
 {
   im_method <- match.arg(im_method)
 
   if(!is.null(pars_min)) {
     stopifnot(all(names(pars)==names(pars_min)))
-    pars <- pmax(pars,pars_min,na.rm=T)
+    pars <- pmax(pars,pars_min,na.rm=TRUE)
   }
   if(!is.null(pars_max)) {
     stopifnot(all(names(pars)==names(pars_max)))
-    pars <- pmin(pars,pars_max,na.rm=T)
+    pars <- pmin(pars,pars_max,na.rm=TRUE)
   }
 
   if(!is.null(scale_pars))
@@ -210,17 +210,17 @@ calc_im_loss <- function(pars, equations, x0, time, obs,
 calc_nls_loss <- function(pars, equations, x0, time, obs,
                           pars_min=NULL, pars_max=NULL,
                           fixed=NULL, calc_nll=calc_nls, scale_pars=NULL,
-                          trace=0, save_nls_trace=F, ode_control=NULL,
+                          trace=0, save_nls_trace=FALSE, ode_control=NULL,
                           simode_env=emptyenv(), ...)
 {
 
   if(!is.null(pars_min)) {
     stopifnot(all(names(pars)==names(pars_min)))
-    pars <- pmax(pars,pars_min,na.rm=T)
+    pars <- pmax(pars,pars_min,na.rm=TRUE)
   }
   if(!is.null(pars_max)) {
     stopifnot(all(names(pars)==names(pars_max)))
-    pars <- pmin(pars,pars_max,na.rm=T)
+    pars <- pmin(pars,pars_max,na.rm=TRUE)
   }
 
   if(!is.null(scale_pars))
@@ -229,7 +229,7 @@ calc_nls_loss <- function(pars, equations, x0, time, obs,
   if(any(is.na(x0))) {
     x0_to_est <- names(which(is.na(x0)))
     x0[x0_to_est] <- pars[x0_to_est]
-    stopifnot(any(is.na(x0))==F)
+    stopifnot(any(is.na(x0))==FALSE)
   }
   non_x0_pars <- pars[setdiff(names(pars),names(x0))]
 

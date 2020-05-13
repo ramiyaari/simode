@@ -55,7 +55,7 @@ profiles_fit2 <- profile(simode_fit2,step_size=0.01,max_steps=50)
 plot(profiles_fit2,mfrow=c(2,3))
 ci_fit2 <- confint(profiles_fit2)
 ci_fit2
-plot(ci_fit2,pars_true=c(theta,x0),legend=T)
+plot(ci_fit2,pars_true=c(theta,x0),legend=TRUE)
 ```
 
 More examples can be found as demos inside the package (type: demo(package='simode'))

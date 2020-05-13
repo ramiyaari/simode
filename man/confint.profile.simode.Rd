@@ -4,8 +4,7 @@
 \alias{confint.profile.simode}
 \title{Calculates confidence intervals for the model parameters}
 \usage{
-\method{confint}{profile.simode}(object, parm = NULL, level = 0.95,
-  ...)
+\method{confint}{profile.simode}(object, parm = NULL, level = 0.95, ...)
 }
 \arguments{
 \item{object}{A fitted model object: \code{profile.simode} object returned by a call to \code{\link{profile}}.}

@@ -4,8 +4,13 @@
 \alias{plot.profile.simode}
 \title{Plot the likelihood profiles for the model parameters}
 \usage{
-\method{plot}{profile.simode}(x, which = NULL, mfrow = par("mfrow"),
-  cols = list(fit = "blue", threshold = "red"), ...)
+\method{plot}{profile.simode}(
+  x,
+  which = NULL,
+  mfrow = par("mfrow"),
+  cols = list(fit = "blue", threshold = "red"),
+  ...
+)
 }
 \arguments{
 \item{x}{\code{profile.simode} object returned by a call to \code{\link{profile}}.}

@@ -4,16 +4,26 @@
 \alias{simode.control}
 \title{Class containing control parameters for a call to \code{simode}}
 \usage{
-simode.control(optim_type = c("both", "im", "nls"),
-  im_optim_method = c("BFGS", "Nelder-Mead", "CG", "L-BFGS-B", "SANN",
-  "Brent", "Rcgmin", "Rvmmin"), nls_optim_method = c("BFGS",
-  "Nelder-Mead", "CG", "L-BFGS-B", "SANN", "Brent", "Rcgmin", "Rvmmin"),
-  im_optim_control = list(), nls_optim_control = list(),
-  ode_control = list(method = "lsoda"), im_smoothing = c("splines",
-  "kernel", "none"), im_grid_size = 0, bw_factor = 1.5,
-  use_pars2vars_mapping = F, trace = 0, save_im_trace = F,
-  save_nls_trace = F, obs_sets_fit = c("separate", "separate_x0",
-  "together"), parallel = F, save_to_log = F)
+simode.control(
+  optim_type = c("both", "im", "nls"),
+  im_optim_method = c("BFGS", "Nelder-Mead", "CG", "L-BFGS-B", "SANN", "Brent",
+    "Rcgmin", "Rvmmin"),
+  nls_optim_method = c("BFGS", "Nelder-Mead", "CG", "L-BFGS-B", "SANN", "Brent",
+    "Rcgmin", "Rvmmin"),
+  im_optim_control = list(),
+  nls_optim_control = list(),
+  ode_control = list(method = "lsoda"),
+  im_smoothing = c("splines", "kernel", "none"),
+  im_grid_size = 0,
+  bw_factor = 1.5,
+  use_pars2vars_mapping = FALSE,
+  trace = 0,
+  save_im_trace = FALSE,
+  save_nls_trace = FALSE,
+  obs_sets_fit = c("separate", "separate_x0", "together"),
+  parallel = FALSE,
+  save_to_log = FALSE
+)
 }
 \arguments{
 \item{optim_type}{Controls what optimization will be performed: either only

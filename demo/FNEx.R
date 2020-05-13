@@ -35,7 +35,7 @@ names(obs) <- vars
 calc_nll <- function(pars, time, obs, model_out, sigma, ...) {
 
   -sum(unlist(lapply(names(obs),function(var) {
-    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
   })))
 }
 
@@ -53,16 +53,16 @@ est_fn <- simode(
 
 est_fn
 x11()
-plot(est_fn, type='fit', pars_true=theta, mfrow=c(2,1), legend=T)
+plot(est_fn, type='fit', pars_true=theta, mfrow=c(2,1), legend=TRUE)
 x11()
-plot(est_fn, type='est', show='both', pars_true=theta, legend=T)
+plot(est_fn, type='est', show='both', pars_true=theta, legend=TRUE)
 
 ## estimate model parameters and sigma ----------------------------
 
 calc_nll_sig <- function(pars, time, obs, model_out, ...) {
   sigma <- pars['sigma']
   -sum(unlist(lapply(names(obs),function(var) {
-    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=T)
+    dnorm(obs[[var]],mean=model_out[,var],sd=sigma,log=TRUE)
   })))
 }
 
@@ -81,6 +81,6 @@ est_fn_sig <- simode(
 
 est_fn_sig
 x11()
-plot(est_fn_sig, type='fit', pars_true=c(theta,sigma), mfrow=c(2,1), legend=T)
+plot(est_fn_sig, type='fit', pars_true=c(theta,sigma), mfrow=c(2,1), legend=TRUE)
 x11()
-plot(est_fn_sig, type='est', show='both', pars_true=c(theta,sigma), legend=T)
+plot(est_fn_sig, type='est', show='both', pars_true=c(theta,sigma), legend=TRUE)

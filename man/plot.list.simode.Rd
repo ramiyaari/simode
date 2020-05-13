@@ -4,11 +4,21 @@
 \alias{plot.list.simode}
 \title{Plot the fit/estimates of a \code{list.simode} object}
 \usage{
-\method{plot}{list.simode}(x, type = c("fit", "est"), show = c("nls",
-  "im", "both"), which = NULL, pars_true = NULL, time = NULL,
-  plot_mean_sd = F, plot_im_smooth = F, legend = F,
-  mfrow = par("mfrow"), cols = list(nls_fit = "blue", im_fit = "green",
-  true = "black", obs = "red", im_smooth = "magenta"), ...)
+\method{plot}{list.simode}(
+  x,
+  type = c("fit", "est"),
+  show = c("nls", "im", "both"),
+  which = NULL,
+  pars_true = NULL,
+  time = NULL,
+  plot_mean_sd = FALSE,
+  plot_im_smooth = FALSE,
+  legend = FALSE,
+  mfrow = par("mfrow"),
+  cols = list(nls_fit = "blue", im_fit = "green", true = "black", obs = "red",
+    im_smooth = "magenta"),
+  ...
+)
 }
 \arguments{
 \item{x}{\code{list.simode} object.}

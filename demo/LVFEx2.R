@@ -47,7 +47,7 @@ simode_fit <- simode(
 
 simode_fit
 x11()
-plot(simode_fit, type='fit', pars_true=theta, legend=T, mfrow=c(2,1))
+plot(simode_fit, type='fit', pars_true=theta, legend=TRUE, mfrow=c(2,1))
 x11()
-plot(simode_fit, show='both', type='est', pars_true=theta, legend=T)
+plot(simode_fit, show='both', type='est', pars_true=theta, legend=TRUE)
 

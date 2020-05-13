@@ -262,7 +262,7 @@ simode_fit <- function(equations, pars, time, obs,
   for(i in 1:d) {
     G_mat[(N*(i-1)+1):(N*i),] <- G[[i]]
   }
-  x0_mat <- matrix(x0,nrow=N,ncol=d,byrow=T)
+  x0_mat <- matrix(x0,nrow=N,ncol=d,byrow=TRUE)
   x_vec <- as.vector(matrix(Q-x0_mat,nrow=nrow(Q)*ncol(Q)))
 
   theta <- NULL

@@ -4,9 +4,18 @@
 \alias{profile.simode}
 \title{Calculate likelihood profiles for the model parameters}
 \usage{
-\method{profile}{simode}(fitted, which = NULL, optim_type = c("nls",
-  "both"), step_size, max_steps = 100, alpha = 0.05, skip_err = T,
-  trace = 0, save_to_log = F, ...)
+\method{profile}{simode}(
+  fitted,
+  which = NULL,
+  optim_type = c("nls", "both"),
+  step_size,
+  max_steps = 100,
+  alpha = 0.05,
+  skip_err = TRUE,
+  trace = 0,
+  save_to_log = FALSE,
+  ...
+)
 }
 \arguments{
 \item{fitted}{\code{simode} object returned by a call to \code{\link{simode}}.}

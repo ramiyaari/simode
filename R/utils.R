@@ -130,7 +130,7 @@ check_obs_validity <- function(obs,time,vars) {
 # @return A mapping of the given parameters to the variables they affect
 # @export
 #
-pars2vars_mapping <- function(pars, equations, named=F) {
+pars2vars_mapping <- function(pars, equations, named=FALSE) {
 
   if(pracma::isempty(pars))
     return (c())
@@ -235,7 +235,7 @@ solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
   {
       if(trace<3){
         tmpfile <- file.path(tempdir(),'simode-ode.log')
-        sink(file=tmpfile,append=F)
+        sink(file=tmpfile,append=FALSE)
       }
       args <- c(list(y=x0, times=time, func=step_ode_model,
                      parms=pars, equations=equations, xvars=xvars, times2=time),arg_list)
@@ -318,7 +318,7 @@ step_ode_model <- function(t, states, pars, equations, xvars, times2)
 smooth_obs <- function(im_smoothing=c('splines','kernel','none'),obs,time,t,bw_factor) {
 
   if(im_smoothing=='splines') {
-    fit <- smooth.spline(time,obs,cv=F)
+    fit <- smooth.spline(time,obs,cv=FALSE)
     sobs <- predict(fit,x=t)$y
   }
   else if(im_smoothing=='kernel') {

@@ -77,10 +77,10 @@ simode.control <- function(optim_type=c("both","im","nls"),
                           ode_control=list(method="lsoda"),
                           im_smoothing=c('splines','kernel','none'),
                           im_grid_size=0, bw_factor=1.5,
-                          use_pars2vars_mapping=F,
-                          trace=0, save_im_trace=F, save_nls_trace=F,
+                          use_pars2vars_mapping=FALSE,
+                          trace=0, save_im_trace=FALSE, save_nls_trace=FALSE,
                           obs_sets_fit=c('separate','separate_x0','together'),
-                          parallel=F, save_to_log=F)
+                          parallel=FALSE, save_to_log=FALSE)
 {
 
   simode_ctrl <- list()
@@ -189,9 +189,9 @@ call_optim <- function(step, args, simode_ctrl) {
   }
 
   if(!is.null(args$pars_min))
-    optim_result$par <- pmax(optim_result$par,args$pars_min,na.rm=T)
+    optim_result$par <- pmax(optim_result$par,args$pars_min,na.rm=TRUE)
   if(!is.null(args$pars_max))
-    optim_result$par <- pmin(optim_result$par,args$pars_max,na.rm=T)
+    optim_result$par <- pmin(optim_result$par,args$pars_max,na.rm=TRUE)
 
   if(simode_ctrl$trace > 0) {
     if(step==1)
@@ -247,7 +247,7 @@ simode_linear <- function(simode_obj, simode_env, ...) {
       lin_pars_names=lin_pars,lin_pars_min=lin_pars_min,
       lin_pars_max=lin_pars_max, gen_obs=gen_obs, scale_pars=scale_pars,
       im_smoothing=ctrl$im_smoothing, im_grid_size=ctrl$im_grid_size,
-      bw_factor=ctrl$bw_factor,trace=ctrl$trace+1, save_im_trace=F,
+      bw_factor=ctrl$bw_factor,trace=ctrl$trace+1, save_im_trace=FALSE,
       simode_env=simode_env, ...)
 
     if(is.infinite(im_loss) || is.null(im_loss)) {
@@ -275,7 +275,7 @@ simode_linear <- function(simode_obj, simode_env, ...) {
     simode_obj$im_loss <- im_loss
     simode_obj$im_smooth <- list(time=simode_env$im$t,val=simode_env$im$im_smooth)
 
-  } else { #do_im_opt==F
+  } else { #do_im_opt==FALSE
     pars_est <- start[pars]
   }
 
@@ -442,7 +442,7 @@ simode_nonlinear <- function(simode_obj, simode_env, ...) {
       simode_obj$im_est_trace <- simode_env$im_est_trace[,im_pars]
     }
   }
-  else { #do_im_opt==F
+  else { #do_im_opt==FALSE
     pars_est <- simode_obj$start[pars]
   }
 
@@ -574,13 +574,13 @@ simode_create <-
     }
   }
 
-  if(decouple_equations==T) {
+  if(decouple_equations==TRUE) {
     # if(!is.null(gen_obs)) {
-    #   stop("Cannot set decouple_equations=T when using gen_obs to generate missing observations")
+    #   stop("Cannot set decouple_equations=TRUE when using gen_obs to generate missing observations")
     # }
     if(simode_ctrl$optim_type=='nls') {
       warning(paste0("when running simode with optim_type==\'nls\' ",
-                     "there is no effect for decouple_equations=T"), immediate.=T)
+                     "there is no effect for decouple_equations=TRUE"), immediate.=TRUE)
       decouple_equations <- F
     }
   }
@@ -590,7 +590,7 @@ simode_create <-
       if(!pracma::isempty(setdiff(names(start),c(nlin_pars,likelihood_pars)))) {
         warning(paste0("start contain values for parameters that do not ",
                        "appear in nlin_pars or likelihood_pars - with im_method=\'separable\' ",
-                       "these values will be ignored."), immediate.=T)
+                       "these values will be ignored."), immediate.=TRUE)
       }
       start <- start[c(nlin_pars,likelihood_pars)]
     }
@@ -608,7 +608,7 @@ simode_create <-
     if(!pracma::isempty(setdiff(names(lower),pars))) {
       extra <- paste('[',setdiff(names(lower),pars),']',collapse='')
       warning(paste0("lower contain parameter names that do not",
-                    " appear in pars and will be ignored: ",extra), immediate.=T)
+                    " appear in pars and will be ignored: ",extra), immediate.=TRUE)
     }
     lower_all <- rep(-Inf,length(pars))
     names(lower_all) <- pars
@@ -623,7 +623,7 @@ simode_create <-
     if(!pracma::isempty(setdiff(names(upper),pars))) {
       extra <- paste('[',setdiff(names(upper),pars),']',collapse='')
       warning(paste0("upper contain parameter names that do not",
-                   " appear in pars and will be ignored: ", extra), immediate.=T)
+                   " appear in pars and will be ignored: ", extra), immediate.=TRUE)
     }
     upper_all <- rep(Inf,length(pars))
     names(upper_all) <- pars
@@ -641,20 +641,20 @@ simode_create <-
        c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN",
          "Brent", "Rcgmin", "Rvmmin"))) {
     warning("unknown im_optim_method selected - using default \'BFGS\'",
-            immediate.=T)
+            immediate.=TRUE)
     simode_ctrl$im_optim_method <- "BFGS"
   }
   if(!(simode_ctrl$nls_optim_method %in%
        c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN",
          "Brent", "Rcgmin", "Rvmmin"))) {
     warning("unknown nls_optim_method selected - using default \'BFGS\'",
-            immediate.=T)
+            immediate.=TRUE)
     simode_ctrl$nls_optim_method <- "BFGS"
   }
   if((simode_ctrl$im_optim_method=="Rvmmin" ||
       simode_ctrl$nls_optim_method=="Rvmmin") &&
-     !requireNamespace("Rvmmin", quietly=T)) {
-    warning("Rvmmin package not installed - using default \'BFGS\'",immediate.=T)
+     !requireNamespace("Rvmmin", quietly=TRUE)) {
+    warning("Rvmmin package not installed - using default \'BFGS\'",immediate.=TRUE)
     if(simode_ctrl$im_optim_method=="Rvmmin")
       simode_ctrl$im_optim_method <- "BFGS"
     if(simode_ctrl$nls_optim_method=="Rvmmin")
@@ -662,8 +662,8 @@ simode_create <-
   }
   if((simode_ctrl$im_optim_method=="Rcgmin" ||
       simode_ctrl$nls_optim_method=="Rcgmin") &&
-     !requireNamespace("Rcgmin", quietly=T)) {
-    warning("Rcgmin package not installed - using default \'BFGS\'",immediate.=T)
+     !requireNamespace("Rcgmin", quietly=TRUE)) {
+    warning("Rcgmin package not installed - using default \'BFGS\'",immediate.=TRUE)
     if(simode_ctrl$im_optim_method=="Rcgmin")
       simode_ctrl$im_optim_method <- "BFGS"
     if(simode_ctrl$nls_optim_method=="Rcgmin")
@@ -859,7 +859,7 @@ simode_create <-
 #' plot(profiles_fit2,mfrow=c(2,3))
 #' ci_fit2 <- confint(profiles_fit2)
 #' ci_fit2
-#' plot(ci_fit2,pars_true=c(theta,x0),legend=T)
+#' plot(ci_fit2,pars_true=c(theta,x0),legend=TRUE)
 #' }
 #'
 #' @importFrom pracma interp1 trapz cumtrapz lsqlincon
@@ -869,7 +869,7 @@ simode_create <-
 simode <- function(equations, pars, time, obs, obs_sets=1,
                   nlin_pars=NULL, likelihood_pars=NULL,
                   fixed=NULL, start=NULL, lower=NULL, upper=NULL,
-                  im_method=c("separable","non-separable"), decouple_equations=F,
+                  im_method=c("separable","non-separable"), decouple_equations=FALSE,
                   gen_obs=NULL, calc_nll=NULL, scale_pars=NULL,
                   simode_ctrl=simode.control(), ...) {
 
@@ -905,7 +905,7 @@ simode <- function(equations, pars, time, obs, obs_sets=1,
 
   if(simode_obj$ctrl$save_to_log) {
     log_file <- file.path(tempdir(),"simode.log")
-    sink(file=log_file, append=F)
+    sink(file=log_file, append=FALSE)
     cat(noquote(paste0("Call to simode on [", Sys.time(), "]:\n")))
   }
 
@@ -989,7 +989,7 @@ simode_decouple <- function(x) {
     }
   }
   x$im_pars_est_mat <- im_pars_est_mat
-  x$im_pars_est <- colMeans(im_pars_est_mat,na.rm=T)
+  x$im_pars_est <- colMeans(im_pars_est_mat,na.rm=TRUE)
   x$im_pars_est[x$likelihood_pars] <- NA
   x$im_loss <- sum(im_loss_vec)
   if(x$ctrl$optim_type!='im') {
@@ -1084,7 +1084,7 @@ simode_cleanup <- function(save_to_log)
 #'
 plot.simode <- function(x, type=c('fit','est'), show=c('nls','im','both'),
                        which=NULL, pars_true=NULL, time=NULL,
-                       plot_im_smooth=F, legend=F, mfrow=par('mfrow'),
+                       plot_im_smooth=FALSE, legend=FALSE, mfrow=par('mfrow'),
                        cols=list(nls_fit="blue",im_fit="green", true="black",
                                  obs="red", im_smooth="magenta"), ...) {
 
@@ -1140,13 +1140,13 @@ plot_trace <- function(x, show=c('nls','im','both'),
 
   if(show=="im" || show=="both") {
     gof_trace <- x$im_loss_trace
-    ylim <- c(min(gof_trace,na.rm=T),min(max(gof_trace,na.rm=T),1.05*gof_trace[1]))
+    ylim <- c(min(gof_trace,na.rm=TRUE),min(max(gof_trace,na.rm=TRUE),1.05*gof_trace[1]))
     plot(gof_trace,type='p',pch=20,ylab='im_loss',
          ylim=ylim, col=cols[['im_fit']], ...)
   }
   if(show=="nls" || show=="both") {
     gof_trace <- x$nls_trace
-    ylim <- c(min(gof_trace,na.rm=T),min(max(gof_trace,na.rm=T),1.05*gof_trace[1]))
+    ylim <- c(min(gof_trace,na.rm=TRUE),min(max(gof_trace,na.rm=TRUE),1.05*gof_trace[1]))
     plot(gof_trace,type='p',pch=20,ylab='nls-loss',
          ylim=ylim, col=cols[['nls_fit']], ...)
   }

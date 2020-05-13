@@ -183,7 +183,7 @@ The call to 'simode' returns an object of class ``simode``, containing the param
 
 ```
 R> plot(est_lin, type='fit', pars_true=theta[lin_pars], 
-+       mfrow=c(1,2), legend=T)
++       mfrow=c(1,2), legend=TRUE)
 ```
 
 ![True and estimated solutions $x_1$ and $x_2$ of the biochemical system of equation (9)](figure1.png)
@@ -192,7 +192,7 @@ R> plot(est_lin, type='fit', pars_true=theta[lin_pars],
 The same plot function can also be used to show the obtained estimates (Figure 2):
 ```
 R> plot(est_lin, type='est', show='both', 
-+       pars_true=theta[lin_pars], legend=T)
++       pars_true=theta[lin_pars], legend=TRUE)
 ```
 
 ![Integral-matching estimates (stage 1) and least-squares estimates (stage 2) for the linear parameters of system (9)](figure2.png){ width=65% }
