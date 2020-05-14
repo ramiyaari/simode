@@ -1,11 +1,11 @@
 
 [![cran
-version](http://www.r-pkg.org/badges/version/simode)](https://cran.rstudio.com/web/packages/simode)
+version](http://www.r-pkg.org/badges/version/simode)](https://CRAN.R-project.org/package=simode)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3576265.svg)](https://doi.org/10.5281/zenodo.3576265)
 [![joss](https://joss.theoj.org/papers/10.21105/joss.01850/status.svg)](https://doi.org/10.21105/joss.01850)
 
 
-#### simode v1.1.8:
+#### simode v1.1.9:
 An R package for conducting statistical inference for ordinary differential equations that aims to ease the optimization process and provide more robust solutions to parameter estimation problems. See, Dattner and Klassen (2015) and Dattner et al. (2017). 
 
 #### Getting Started:
@@ -62,9 +62,9 @@ More examples can be found as demos inside the package (type: demo(package='simo
 
 #### Documentation:
 From an R console type ?simode for help on the package.
-The package page at CRAN is [<a href="https://cran.r-project.org/web/packages/simode/index.html">here</a>],
-package reference manual is [<a href="https://cran.r-project.org/web/packages/simode/simode.pdf">here</a>], 
-package vignette is [<a href="https://cran.r-project.org/web/packages/simode/vignettes/R_package_simode.pdf">here</a>].
+The package page at CRAN is [<a href="https://CRAN.R-project.org/package=simode">here</a>],
+package reference manual is [<a href="https://github.com/ramiyaari/simode/blob/master/inst/simode-manual.pdf">here</a>], 
+package vignette is [<a href="https://github.com/ramiyaari/simode/blob/master/vignettes/R_package_simode.pdf">here</a>].
 
 #### Support and Contributions:
 For support and bug reports send an email to: ramiyaari@gmail.com or open an issue [<a href="https://github.com/ramiyaari/simode/issues">here</a>].
