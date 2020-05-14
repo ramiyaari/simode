@@ -267,6 +267,7 @@ solve_ode <- function(equations, pars, x0, time, xvars=NULL, ...)
 #' @param type Which solution to generate ('both'\\'nls'\\'im').
 #' @return A matrix whose first column contains the given time points
 #' and subsequent columns hold the computed ODE equations' values at these time points.
+#' @importFrom deSolve ode
 #' @export
 #'
 solve_ode2 <- function(x,type=c("both","im","nls")) {

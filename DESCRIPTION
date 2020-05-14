@@ -14,8 +14,8 @@ Description: Implements statistical inference for systems of ordinary differenti
 Depends: R (>= 3.4.0)
 Imports: 
     deSolve, 
-    pracma, 
-    quadprog
+    quadprog,
+    pracma
 Suggests: 
     parallel,
     Rcgmin,
